@@ -6,13 +6,12 @@ main = "src/index.js"
 compatibility_date = "2026-10-01"
 
 # 填你的 Cloudflare Account ID（Dashboard 右下角可见）
-# account_id = "替换为你的 Account ID"
+account_id = "9c3cf378aab0b9b3c176eaabb4fe7775"
 
 [vars]
-# 允许访问的前端来源，逗号分隔；留空表示不校验来源（调试期可用，上线务必填写）
-ALLOWED_ORIGINS = ""
-# 未配置来源白名单时，false 表示放行所有来源（本地调试用），上线改为 true
-STRICT_ORIGIN = "false"
+# 允许访问的前端来源，逗号分隔（上线后只放行你的站点）
+ALLOWED_ORIGINS = "https://6kgtkjbp78-bot.github.io,http://localhost:8787,http://127.0.0.1:8787"
+STRICT_ORIGIN = "true"
 
 # 百炼接口地址（北京地域默认域名；若使用业务空间专属域名可在此替换）
 DS_BASE = "https://dashscope.aliyuncs.com"
