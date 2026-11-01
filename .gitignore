@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+worker/.dev.vars
+worker/.dev.vars.*
+.env
+*.local.js

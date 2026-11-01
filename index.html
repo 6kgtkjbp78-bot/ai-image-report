@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>形界 · AI 形象测评诊断</title>
+<meta name="description" content="上传一张照片，AI 从脸型、肤色、身材比例、穿搭完成度多维度诊断，输出你的专属形象改造报告。">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main class="app">
+
+  <!-- 1. 落地页 -->
+  <section id="step-hero" class="step is-active">
+    <header class="hero">
+      <p class="eyebrow">AI 形象诊断</p>
+      <h1>别人看你的第一眼<br>到底输在哪一步</h1>
+      <p class="lede">上传一张照片 + 身高体重，5 个维度逐项拆解。<br>不是打分游戏，是一份造型师能直接照着做的改造方案。</p>
+      <ul class="hero-points">
+        <li><span>01</span> 脸型 · 肤色 · 骨相结构诊断</li>
+        <li><span>02</span> 身高体重推导的身材框架与比例</li>
+        <li><span>03</span> 发型 / 穿搭 / 妆造的投入产出排序</li>
+      </ul>
+      <button class="btn btn-primary" id="btn-start">免费测一测</button>
+      <p class="micro">照片仅用于本次分析，服务端不留存，可随时清除</p>
+    </header>
+  </section>
+
+  <!-- 2. 上传 -->
+  <section id="step-upload" class="step">
+    <div class="step-bar"><button class="link-back" data-back="step-hero">← 返回</button><span>1 / 3 填写资料</span></div>
+    <h2 class="step-title">先给我一张真实的你</h2>
+    <p class="step-sub">正面、光线均匀、不戴帽子墨镜的照片最准。半身或大头都可。</p>
+
+    <label class="uploader" id="uploader">
+      <input type="file" id="file-input" accept="image/*" hidden>
+      <div class="uploader-empty">
+        <div class="uploader-icon"></div>
+        <strong>点击上传照片</strong>
+        <span>支持 JPG / PNG，自动压缩后上传</span>
+      </div>
+      <img id="preview" class="uploader-preview" alt="照片预览" hidden>
+    </label>
+
+    <div class="form-grid">
+      <label class="field">
+        <span>性别</span>
+        <select id="f-gender">
+          <option value="男">男</option>
+          <option value="女">女</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>身高 cm</span>
+        <input id="f-height" type="number" inputmode="numeric" placeholder="183" min="120" max="220">
+      </label>
+      <label class="field">
+        <span>体重 kg</span>
+        <input id="f-weight" type="number" inputmode="numeric" placeholder="75" min="25" max="200">
+      </label>
+      <label class="field">
+        <span>年龄段</span>
+        <select id="f-age">
+          <option value="18-24">18-24</option>
+          <option value="25-32" selected>25-32</option>
+          <option value="33-40">33-40</option>
+          <option value="41+">41 以上</option>
+        </select>
+      </label>
+      <label class="field field-full">
+        <span>最想改善的场景</span>
+        <select id="f-scene">
+          <option value="职场通勤与商务场合">职场通勤与商务场合</option>
+          <option value="日常社交与约会">日常社交与约会</option>
+          <option value="相亲与正式见面">相亲与正式见面</option>
+          <option value="镜头上镜与内容出镜">镜头上镜与内容出镜</option>
+        </select>
+      </label>
+    </div>
+
+    <label class="consent">
+      <input type="checkbox" id="f-consent">
+      <span>我已阅读并同意：照片属敏感个人信息，将加密传输给第三方大模型完成分析，服务端不做留存，我可随时在页面底部清除全部数据。</span>
+    </label>
+
+    <button class="btn btn-primary btn-block" id="btn-analyze" disabled>开始诊断</button>
+    <p class="micro" id="upload-hint">请先上传照片并勾选同意</p>
+  </section>
+
+  <!-- 3. 分析中 -->
+  <section id="step-loading" class="step">
+    <div class="loader">
+      <div class="loader-ring"></div>
+      <h2 class="step-title">正在生成你的诊断报告</h2>
+      <p class="loader-step" id="loader-step">正在读取照片…</p>
+      <div class="loader-bar"><i id="loader-fill"></i></div>
+    </div>
+  </section>
+
+  <!-- 4. 报告 -->
+  <section id="step-report" class="step">
+    <div id="report-root"></div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <p>形界 FIELD · AI 形象诊断</p>
+  <p class="micro">本报告由 AI 生成，仅代表形象风格建议，不构成医学诊断或任何自动化决策依据。改造模拟图为 AI 生成图片。</p>
+  <p class="micro"><button class="link-danger" id="btn-clear">清除我在本机的全部数据</button></p>
+</footer>
+
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

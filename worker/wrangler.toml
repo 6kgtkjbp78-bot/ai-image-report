@@ -1,0 +1,29 @@
+# Cloudflare Worker 配置（非敏感，可提交到公开仓库）
+# 敏感值一律通过 `npx wrangler secret put XXX` 写入，不要写在这个文件里
+
+name = "image-report-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# 填你的 Cloudflare Account ID（Dashboard 右下角可见）
+# account_id = "替换为你的 Account ID"
+
+[vars]
+# 允许访问的前端来源，逗号分隔；留空表示不校验来源（调试期可用，上线务必填写）
+ALLOWED_ORIGINS = ""
+# 未配置来源白名单时，false 表示放行所有来源（本地调试用），上线改为 true
+STRICT_ORIGIN = "false"
+
+# 百炼接口地址（北京地域默认域名；若使用业务空间专属域名可在此替换）
+DS_BASE = "https://dashscope.aliyuncs.com"
+MODEL_VL = "qwen3-vl-plus"
+MODEL_EDIT = "qwen-image-edit-plus"
+
+# 每日总配额（防止 API Key 被盗刷导致账单失控）
+QUOTA_ANALYZE_PER_DAY = "300"
+QUOTA_TRANSFORM_PER_DAY = "150"
+
+# 绑定路由（自定义域，需先把域名接入 Cloudflare）
+# [[routes]]
+# pattern = "yourdomain.com/api/*"
+# custom_domain = false
