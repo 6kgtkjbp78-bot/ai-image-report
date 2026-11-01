@@ -6,3 +6,5 @@ worker/.dev.vars.*
 *.local.js
 .workbuddy/
 *.log
+.tmp/
+worker/dist-check/
