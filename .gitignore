@@ -4,3 +4,5 @@ worker/.dev.vars
 worker/.dev.vars.*
 .env
 *.local.js
+.workbuddy/
+*.log
