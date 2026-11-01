@@ -7,7 +7,7 @@
 const fromQuery = new URLSearchParams(location.search).get('api');
 const fromStorage = localStorage.getItem('cfg:api_base');
 
-export const API_BASE = (fromQuery || fromStorage || 'https://YOUR-WORKER.workers.dev').replace(/\/$/, '');
+export const API_BASE = (fromQuery || fromStorage || 'https://image-report-api.xingjie-field.workers.dev').replace(/\/$/, '');
 
 if (fromQuery) localStorage.setItem('cfg:api_base', API_BASE); // 调试用，便于记住地址
 
