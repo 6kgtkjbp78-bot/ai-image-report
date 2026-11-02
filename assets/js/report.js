@@ -213,13 +213,30 @@ function planCard(report) {
 
 function hairRefCard(report) {
   const files = pickHairRefFiles(report.hair_recs.map((r) => r.name));
+  const rule = report.face_rule || null;
+  const intro = rule
+    ? h('div', { class: 'face-rule' }, [
+        h('p', { class: 'face-rule-type' }, [
+          h('span', { text: '按脸型适配 · ' }),
+          h('b', { text: `【${rule.type}】` }),
+        ]),
+        h('p', { class: 'face-rule-focus', text: `重点：${rule.focus}` }),
+        rule.avoid.length ? h('p', { class: 'face-rule-avoid', text: `避雷：${rule.avoid.join('、')}` }) : null,
+        h('p', { class: 'face-rule-tip', text: rule.tip }),
+        h('p', { class: 'face-rule-mantra', text: `口诀 · ${rule.mantra}` }),
+      ])
+    : null;
   const items = report.hair_recs.map((rec, i) =>
     h('figure', { class: 'hair-ref' }, [
       h('img', { src: files[i], alt: rec.name }),
       h('figcaption', {}, [h('b', { text: rec.name }), h('span', { text: rec.desc })]),
     ])
   );
-  return card('发型推荐', '款式参考图，非本人合成效果', [h('div', { class: 'hair-ref-grid' }, items)]);
+  return card('发型推荐', rule ? `依据【${rule.type}】模板` : '款式参考图', [
+    intro,
+    h('div', { class: 'hair-ref-grid' }, items),
+    h('p', { class: 'micro', text: '以上为款式参考图，非本人合成效果' }),
+  ]);
 }
 
 export function posterCard(handlers) {
