@@ -161,7 +161,7 @@ const FEAT_ICONS = { 额头: '◠', 眉毛: '⌒', 眼睛: '👁', 鼻子: '👃
  *  hairImages: (HTMLImageElement|null)[] 3 款发型 AI 图
  *  brandName: 底部品牌名
  */
-export async function buildPoster({ report, photo, hairImages = [], brandName }) {
+export async function buildPoster({ report, photo, hairImages = [], brandName, qrImage = null }) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -178,7 +178,7 @@ export async function buildPoster({ report, photo, hairImages = [], brandName })
   const row5H = 330; // 色彩推荐
   const row55H = 330; // 皮相分析
   const row6H = 330; // 优化建议
-  const footerH = 130;
+  const footerH = 196;
 
   const H =
     headerH + row1H + row2H + row3H + row4H + row5H + row55H + row6H + footerH + GAP * 7 + M;
@@ -529,15 +529,33 @@ export async function buildPoster({ report, photo, hairImages = [], brandName })
   }
   y += row6H + GAP;
 
-  /* ---- 底部 ---- */
-  const fy = y + 44;
+  /* ---- 底部：金句 + 私域入口 ---- */
+  const fy = y + 40;
   ctx.textAlign = 'center';
   ctx.fillStyle = C.brown;
   ctx.font = `600 30px ${FONT}`;
   ctx.fillText('♥ 你的脸，不只是好看，还有清晰可见的气质优势。 ♥', W / 2, fy);
+
+  if (qrImage) {
+    drawCover(ctx, qrImage, M + 24, fy + 24, 104, 104, 12);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = C.brown;
+    ctx.font = `600 22px ${FONT}`;
+    ctx.fillText(`扫码${BRAND.hookShort}`, M + 148, fy + 62);
+    ctx.fillStyle = C.ink3;
+    ctx.font = `400 15px ${FONT}`;
+    ctx.fillText('长按扫码 · 备注「形象报告」', M + 148, fy + 92);
+  } else if (BRAND.wechat) {
+    ctx.fillStyle = C.brown;
+    ctx.font = `600 21px ${FONT}`;
+    ctx.fillText(`微信 ${BRAND.wechat} · ${BRAND.hookShort}`, W / 2, fy + 62);
+  }
+  /* 二维码与微信号都未配置时，不显示私域入口行，保持海报干净 */
+
+  ctx.textAlign = 'center';
   ctx.fillStyle = C.ink3;
   ctx.font = `400 16px ${FONT}`;
-  ctx.fillText(`${brandName || BRAND.name} · ${BRAND.shop} · AI 生成内容仅供参考`, W / 2, fy + 40);
+  ctx.fillText(`${brandName || BRAND.name} · AI 生成内容仅供参考`, W / 2, fy + 156);
   ctx.textAlign = 'left';
 
   return canvas;
