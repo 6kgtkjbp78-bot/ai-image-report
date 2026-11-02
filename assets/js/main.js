@@ -134,6 +134,10 @@ function stopProgress() {
 
 /* ---------------- 报告 ---------------- */
 
+function loadQr() {
+  return BRAND.qr ? loadImage(BRAND.qr).catch(() => null) : null;
+}
+
 function buildHandlers() {
   return {
     async onPoster(holder, setStage) {
@@ -148,6 +152,7 @@ function buildHandlers() {
         photo,
         hairImages,
         brandName: BRAND.name,
+        qrImage: await loadQr(),
       });
       await publishCanvas(canvas, r, holder);
       api.track('poster_ok');
@@ -155,12 +160,11 @@ function buildHandlers() {
 
     async onShare(holder) {
       if (!state.photoUrl) throw new Error('缺少照片');
-      const qrImage = BRAND.qr ? await loadImage(BRAND.qr).catch(() => null) : null;
       const canvas = await buildShareCard({
         report: state.report,
         photoUrl: state.photoUrl,
         afterUrl: null,
-        qrImage,
+        qrImage: await loadQr(),
       });
       await publishCanvas(canvas, state.report, holder);
       api.track('share_card');
@@ -170,10 +174,8 @@ function buildHandlers() {
       const r = state.report;
       await api.submitLead({
         name: payload.name,
-        phone: payload.phone,
-        wechat: payload.phone,
-        expect_time: payload.expect,
-        summary: `${r.score_total}→${r.score_after} 分｜${r.archetype.name}｜优先做${r.roi[0].item}`,
+        wechat: payload.wechat,
+        summary: `${r.score_total}→${r.score_after} 分｜${r.face.face_type}｜优先做${r.roi[0].item}`,
       });
       api.track('lead_submit');
     },
