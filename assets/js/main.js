@@ -12,6 +12,7 @@ import {
 import * as api from './api.js';
 import { renderReport } from './report.js';
 import { buildShareCard, publishCanvas } from './sharecard.js';
+import { buildPoster } from './poster.js';
 
 const STEPS = ['step-hero', 'step-upload', 'step-loading', 'step-report'];
 
@@ -20,6 +21,7 @@ const state = {
   analyze: null, // { blob, dataUrl }
   photoUrl: '', // objectURL（用于预览与分享卡）
   afterUrl: '', // 改造后 blobURL
+  hairImages: null, // 3 款发型 AI 图（HTMLImageElement|null）
   report: null,
 };
 
@@ -141,6 +143,23 @@ function stopProgress() {
 
 /* ---------------- 报告 ---------------- */
 
+/** 单张发型效果图：限流退避重试最多 3 次，失败返回 null（海报里降级为占位） */
+async function genHairImage(image, prompt) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await api.transform(image, prompt);
+      const url = res.url || (await api.pollTransform(res.task_id));
+      const local = await blobUrlFrom(api.assetBlobUrl(url));
+      return await loadImage(local);
+    } catch (err) {
+      const throttled = /限流|太频繁|quota|rate|Throttling/i.test(String(err && err.message));
+      if (!throttled || attempt === 2) return null;
+      await new Promise((r) => setTimeout(r, 12000 * (attempt + 1)));
+    }
+  }
+  return null;
+}
+
 function buildHandlers() {
   return {
     async onGenerateTransform(tick) {
@@ -154,6 +173,35 @@ function buildHandlers() {
       state.afterUrl = local;
       await idbSet('after', await (await fetch(local)).blob());
       api.track('transform_ok');
+    },
+
+    async onPoster(holder, setStage) {
+      if (!state.file && !state.analyze) throw new Error('请重新上传照片');
+      const r = state.report;
+
+      // 1) 串行生成 3 款发型效果图（百炼对图生图有并发限流，必须排队 + 退避重试）
+      if (!state.hairImages) {
+        const image = state.file ? (await prepareForEdit(state.file)).dataUrl : state.analyze.dataUrl;
+        const results = [];
+        for (let i = 0; i < r.hair_recs.length; i++) {
+          setStage?.(`正在生成发型效果图（${i + 1}/3）…`);
+          results.push(await genHairImage(image, r.hair_recs[i].prompt));
+          if (i < r.hair_recs.length - 1) await new Promise((res) => setTimeout(res, 4000));
+        }
+        state.hairImages = results;
+      }
+
+      // 2) 绘制海报
+      setStage?.('正在绘制报告海报…');
+      const photo = await loadImage(state.photoUrl);
+      const canvas = await buildPoster({
+        report: r,
+        photo,
+        hairImages: state.hairImages,
+        brandName: BRAND.name,
+      });
+      await publishCanvas(canvas, r, holder);
+      api.track('poster_ok');
     },
 
     async onShare(holder) {
@@ -204,6 +252,11 @@ async function restore() {
   if (!cached) return;
   try {
     state.report = JSON.parse(cached);
+    if (!state.report || !state.report.celebrity) {
+      // 旧版本报告结构，直接作废重测
+      localStorage.removeItem('report');
+      return;
+    }
     const photo = await idbGet('photo');
     if (!photo) return;
     state.photoUrl = URL.createObjectURL(photo);
