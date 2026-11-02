@@ -282,34 +282,49 @@ export function shareCard(report, handlers) {
 }
 
 export function leadCard(handlers) {
-  const name = h('input', { placeholder: '怎么称呼', maxlength: '20' });
-  const phone = h('input', { placeholder: '手机或微信', inputmode: 'tel', maxlength: '40' });
-  const expect = h('input', { placeholder: '期望到店时间（可选）', maxlength: '30' });
+  const name = h('input', { placeholder: '怎么称呼（可选）', maxlength: '20' });
+  const wechat = h('input', { placeholder: '你的微信号（可选）', maxlength: '40' });
   const msg = h('p', { class: 'lead-msg' });
-  const submit = h('button', { class: 'btn btn-primary btn-block', text: '预约到店实施改造' });
+  const submit = h('button', { class: 'btn btn-primary btn-block', text: '加微信领资料' });
+
+  const qrBlock = BRAND.qr
+    ? h('div', { class: 'lead-qr' }, [
+        h('img', { src: BRAND.qr, alt: '资料领取二维码' }),
+        h('span', { text: '长按扫码 · 备注「形象报告」' }),
+      ])
+    : BRAND.wechat
+      ? h('p', { class: 'lead-wx' }, [h('span', { text: '微信号 ' }), h('b', { text: BRAND.wechat })])
+      : null;
 
   submit.addEventListener('click', async () => {
-    if (!name.value.trim() || !phone.value.trim()) {
-      msg.textContent = '留下称呼和一个联系方式，我们才好约时间';
+    if (!name.value.trim() && !wechat.value.trim()) {
+      msg.textContent = BRAND.qr
+        ? '扫上方二维码最快；不方便扫码的话，留个微信号也行'
+        : '留个微信号，我把资料发你';
       return;
     }
     submit.disabled = true;
     submit.textContent = '提交中…';
     try {
-      await handlers.onLead({ name: name.value, phone: phone.value, expect: expect.value });
-      msg.textContent = '已收到，顾问会尽快联系你确认时间';
+      await handlers.onLead({ name: name.value, wechat: wechat.value });
+      msg.textContent = '已收到，会尽快把资料发给你';
       submit.textContent = '已提交';
     } catch (err) {
       msg.textContent = err.message || '提交失败，请稍后重试';
       submit.disabled = false;
-      submit.textContent = '预约到店实施改造';
+      submit.textContent = '加微信领资料';
     }
   });
 
-  return card('把报告变成真的', BRAND.shop, [
-    h('p', { class: 'roi-reason', text: '报告给的是方向，实施需要一双专业的手。留个联系方式，我们按你的报告准备方案。' }),
-    h('div', { class: 'lead-grid' }, [name, phone]),
-    expect,
+  return card('领一份脸型发型对照表', '', [
+    h('p', { class: 'roi-reason', text: BRAND.hook }),
+    h('p', { class: 'roi-reason', text: '资料直接拿走就行，不用预约、不用留电话。' }),
+    qrBlock,
+    h('p', {
+      class: 'micro',
+      text: BRAND.qr ? '扫不上码？留个微信号，我加你' : '留个微信号，我把资料发你',
+    }),
+    h('div', { class: 'lead-grid' }, [name, wechat]),
     submit,
     msg,
   ]);
