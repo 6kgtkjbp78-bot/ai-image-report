@@ -202,15 +202,20 @@ export async function buildShareCard({ report, photoUrl, afterUrl, qrImage }) {
 
   ctx.fillStyle = BRAND.ink3;
   ctx.font = `18px ${F}`;
-  ctx.fillText(`${BRAND.shop} · 本报告由 AI 生成，仅作形象参考`, L, 1380);
+  ctx.fillText(`${BRAND.byline} · AI 生成，仅作形象参考`, L, 1380);
 
   if (qrImage) {
-    drawCover(ctx, qrImage, R - 96, 1308, 96, 96, 10);
-  } else {
+    drawCover(ctx, qrImage, R - 96, 1300, 96, 96, 10);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = BRAND.navy;
+    ctx.font = `600 20px ${F}`;
+    ctx.fillText(`扫码${BRAND.hookShort}`, R - 108, 1364);
+    ctx.textAlign = 'left';
+  } else if (BRAND.wechat) {
     ctx.textAlign = 'right';
     ctx.fillStyle = BRAND.navy;
     ctx.font = `600 22px ${F}`;
-    ctx.fillText('扫码预约改造', R, 1364);
+    ctx.fillText(`微信 ${BRAND.wechat}`, R, 1364);
     ctx.textAlign = 'left';
   }
 
