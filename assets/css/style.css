@@ -214,6 +214,16 @@ ul.advice li { padding: 10px 0; border-top: 1px solid var(--line); font-size: 14
 .compare img { width: 100%; border-radius: 10px; display: block; background: #EEE; }
 .compare figcaption { font-size: 12px; color: var(--ink-3); text-align: center; margin-top: 6px; }
 
+/* 脸型适配说明 */
+.face-rule { background: #FAF7F2; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.face-rule p { margin: 0; font-size: 13px; line-height: 1.7; }
+.face-rule-type { color: var(--ink-3); }
+.face-rule-type b { color: var(--navy); font-size: 14px; }
+.face-rule-focus { color: var(--ink); margin-top: 4px !important; }
+.face-rule-avoid { color: #A8564A; }
+.face-rule-tip { color: var(--ink-2); }
+.face-rule-mantra { color: #8E6BA8; margin-top: 6px !important; font-size: 12px !important; }
+
 /* 发型参考图 */
 .hair-ref-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .hair-ref { margin: 0; }
