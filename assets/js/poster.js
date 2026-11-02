@@ -340,23 +340,34 @@ export async function buildPoster({ report, photo, hairImages = [], brandName })
   sectionTitle(ctx, 6, '发型推荐', M + 18, cy);
   ctx.fillStyle = C.ink3;
   ctx.font = `400 16px ${FONT}`;
-  ctx.fillText('（根据脸型与气质，推荐以下风格）', M + 190, cy + 2);
+  ctx.fillText('（根据脸型与气质推荐，图为款式参考）', M + 190, cy + 2);
   const cardW = (innerW - 48 - 24 * 2) / 3;
   const imgH = cardW * 1.18;
   let hx = M + 24;
   for (let i = 0; i < 3; i++) {
     const rec = report.hair_recs[i];
     const iy = cy + 26;
-    const img = hairImages[i] || photo;
-    drawCover(ctx, img, hx, iy, cardW, imgH, 14);
-    // 有 AI 图时标注来源，避免与真实照片混淆
+    const img = hairImages[i];
+    if (img) {
+      drawCover(ctx, img, hx, iy, cardW, imgH, 14);
+    } else {
+      rr(ctx, hx, iy, cardW, imgH, 14);
+      ctx.fillStyle = '#EDE6D8';
+      ctx.fill();
+      ctx.fillStyle = C.ink3;
+      ctx.font = `400 17px ${FONT}`;
+      ctx.textAlign = 'center';
+      ctx.fillText('参考图待更新', hx + cardW / 2, iy + imgH / 2);
+      ctx.textAlign = 'left';
+    }
+    // 角标：款式参考（非本人效果图）
     rr(ctx, hx + cardW - 92, iy + 12, 80, 30, 15);
     ctx.fillStyle = 'rgba(43, 38, 32, 0.55)';
     ctx.fill();
     ctx.fillStyle = '#FFF';
     ctx.font = `400 14px ${FONT}`;
     ctx.textAlign = 'center';
-    ctx.fillText(hairImages[i] ? 'AI 生成' : '原图参考', hx + cardW - 52, iy + 32);
+    ctx.fillText('款式参考', hx + cardW - 52, iy + 32);
     ctx.textAlign = 'left';
     let ty = iy + imgH + 34;
     ctx.fillStyle = C.ink;
