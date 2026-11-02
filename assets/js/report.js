@@ -1,5 +1,6 @@
 import { h } from './dom.js';
 import { COLOR_MAP, BRAND } from './config.js';
+import { pickHairRefFiles } from './hair.js';
 
 /* ------------------------------------------------------------------ */
 /* 雷达图（报告页与分享卡共用）                                        */
@@ -210,53 +211,21 @@ function planCard(report) {
   return card('七天改造清单', '进度存在本机', list);
 }
 
-export function transformCard(state, handlers) {
-  const compare = h('div', { class: 'compare' });
-  const btn = h('button', { class: 'btn btn-ghost btn-block', text: '生成改造后的我' }, []);
-  const note = h('p', { class: 'micro', text: '基于同一张照片生成改造模拟图，约需 20-40 秒' });
-
-  function paint() {
-    compare.innerHTML = '';
-    const before = h('figure', {}, [
-      h('img', { src: state.photoUrl, alt: '改造前' }),
-      h('figcaption', { text: '现状' }),
-    ]);
-    compare.appendChild(before);
-    if (state.afterUrl) {
-      compare.appendChild(
-        h('figure', {}, [
-          h('img', { src: state.afterUrl, alt: '改造后' }),
-          h('figcaption', {}, [document.createTextNode('改造预测'), h('span', { class: 'ai-badge', text: 'AI 生成' })]),
-        ])
-      );
-    }
-  }
-
-  btn.addEventListener('click', async () => {
-    btn.disabled = true;
-    btn.textContent = '生成中…';
-    try {
-      await handlers.onGenerateTransform(() => {
-        btn.textContent = '渲染中…';
-      });
-      note.textContent = '改造模拟图为 AI 生成，仅供方向参考，实际效果以到店实施为准';
-    } catch (err) {
-      note.textContent = err.message || '生成失败，请重试';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = state.afterUrl ? '重新生成' : '生成改造后的我';
-      paint();
-    }
-  });
-
-  paint();
-  return card('改造后的你', '', [compare, btn, note]);
+function hairRefCard(report) {
+  const files = pickHairRefFiles(report.hair_recs.map((r) => r.name));
+  const items = report.hair_recs.map((rec, i) =>
+    h('figure', { class: 'hair-ref' }, [
+      h('img', { src: files[i], alt: rec.name }),
+      h('figcaption', {}, [h('b', { text: rec.name }), h('span', { text: rec.desc })]),
+    ])
+  );
+  return card('发型推荐', '款式参考图，非本人合成效果', [h('div', { class: 'hair-ref-grid' }, items)]);
 }
 
 export function posterCard(handlers) {
   const holder = h('div');
   const btn = h('button', { class: 'btn btn-primary btn-block', text: '生成我的颜值气质分析报告' });
-  const note = h('p', { class: 'micro', text: '含 3 款 AI 发型效果图，约需 1-3 分钟；若生成失败会显示原图参考' });
+  const note = h('p', { class: 'micro', text: '含 3 款发型参考图（非本人合成），几秒即可生成' });
   btn.addEventListener('click', async () => {
     btn.disabled = true;
     btn.textContent = '生成中…';
@@ -379,7 +348,7 @@ export function renderReport(report, state, handlers) {
   ]));
   root.appendChild(roiCard(report));
   root.appendChild(adviceCard(report));
-  root.appendChild(transformCard(state, handlers));
+  root.appendChild(hairRefCard(report));
   root.appendChild(planCard(report));
   root.appendChild(shareCard(report, handlers));
   root.appendChild(leadCard(handlers));
