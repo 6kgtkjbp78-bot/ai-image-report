@@ -114,7 +114,7 @@ export default {
 /* 报告生成                                                            */
 /* ------------------------------------------------------------------ */
 
-export const SYSTEM_PROMPT = `你是服务于男士（兼容女性）形象改造机构的首席形象顾问，有十余年男装版型、发型结构与脸型适配、色彩季型、场合着装的实战经验。
+export const SYSTEM_PROMPT = `你是一位独立的资深形象顾问，有十余年男装版型、发型结构与脸型适配、色彩季型、场合着装的实战经验。
 
 你的审美主张：Minimal Chic / Smart Casual / Urban Quiet Luxury —— 克制、干净、有质感，不追求抢眼。
 
@@ -127,6 +127,7 @@ export const SYSTEM_PROMPT = `你是服务于男士（兼容女性）形象改�
 - 每条 comment 和每条建议都必须具体、可执行、可被造型师直接照做。禁止出现「注意保养」「提升气质」「增强自信」这类空话。
 - 必须给出数字：长度用厘米、角度或根数、宽度用指宽、发型用具体名称和长度。
 - 语言克制、专业、像一位收费不菲的顾问在说话，不要讨好，不要油腻，不要使用感叹号。
+- 本报告是一份独立的形象测评，不是任何机构的服务介绍。禁止出现「到店」「预约」「顾问」「门店」「机构」「联系我们」「加微信」等引导线下服务或商业转化的表述；只给方向和用户可以自己动手或拿着报告去执行的做法。
 
 肤色与用色准则（默认按中国用户暖调偏黄肤色判断）：
 - 推荐基础色：藏青、炭灰、米白、燕麦。
@@ -491,15 +492,14 @@ async function handleAsset(target, corsHeaders) {
 async function handleLead(body, env, request, corsHeaders, ctx) {
   const cfg = readConfig(env);
   const name = cleanInstruction(body.name, 20) || '未留名';
-  const contact = `${cleanInstruction(body.phone, 30) || '-'} / ${cleanInstruction(body.wechat, 40) || '-'}`;
-  const expect = cleanInstruction(body.expect_time, 30) || '未填写';
+  const wechat = cleanInstruction(body.wechat, 40) || cleanInstruction(body.phone, 40) || '-';
   const summary = cleanInstruction(body.summary, 300) || '';
 
   const content = [
-    '【形象测评站 · 新的预约】',
-    `姓名：${name}`,
-    `手机/微信：${contact}`,
-    `期望到店：${expect}`,
+    '【形象测评站 · 新的私域线索】',
+    `称呼：${name}`,
+    `微信：${wechat}`,
+    '来源：测评报告页（领资料）',
     summary ? `测评摘要：${summary}` : '',
     `时间：${new Date(Date.now() + 8 * 3600e3).toISOString().replace('T', ' ').slice(0, 19)}`,
   ]
@@ -779,7 +779,7 @@ export function normalizeReport(d, profile) {
 
   const hairRaw = Array.isArray(d.advice?.hair) ? d.advice.hair : [];
   const hair = [0, 1, 2].map((i) => ({
-    do: typeof hairRaw[i]?.do === 'string' ? hairRaw[i].do.slice(0, 60) : '建议到店与造型师当面确认长度与纹理',
+    do: typeof hairRaw[i]?.do === 'string' ? hairRaw[i].do.slice(0, 60) : '把报告里的长度与纹理要求直接给造型师看',
     avoid: typeof hairRaw[i]?.avoid === 'string' ? hairRaw[i].avoid.slice(0, 40) : '避免自行大面积推剪',
   }));
 
@@ -1003,7 +1003,7 @@ export function normalizeReport(d, profile) {
     body: {
       bmi: bmiOf(profile?.height, profile?.weight),
       build: String(d.body?.build || '依据身高体重的体型判断').slice(0, 40),
-      ratio: String(d.body?.ratio || '上下身比例待到店实测').slice(0, 40),
+      ratio: String(d.body?.ratio || '上下身比例依据身高体重推断').slice(0, 40),
       focus: String(d.body?.focus || '优先解决肩部与腰线').slice(0, 40),
     },
     roi,
