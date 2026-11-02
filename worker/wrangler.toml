@@ -15,8 +15,8 @@ STRICT_ORIGIN = "true"
 
 # 百炼接口地址（北京地域默认域名；若使用业务空间专属域名可在此替换）
 DS_BASE = "https://dashscope.aliyuncs.com"
-MODEL_VL = "qwen3-vl-plus"
-MODEL_EDIT = "qwen-image-edit-plus"
+MODEL_VL = "qwen3.7-plus"
+MODEL_EDIT = "qwen-image-3.0"
 
 # 每日总配额（防止 API Key 被盗刷导致账单失控）
 QUOTA_ANALYZE_PER_DAY = "300"
