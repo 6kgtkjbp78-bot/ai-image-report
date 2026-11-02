@@ -213,6 +213,14 @@ ul.advice li { padding: 10px 0; border-top: 1px solid var(--line); font-size: 14
 .compare figure { margin: 0; }
 .compare img { width: 100%; border-radius: 10px; display: block; background: #EEE; }
 .compare figcaption { font-size: 12px; color: var(--ink-3); text-align: center; margin-top: 6px; }
+
+/* 发型参考图 */
+.hair-ref-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.hair-ref { margin: 0; }
+.hair-ref img { width: 100%; aspect-ratio: 3 / 3.6; object-fit: cover; border-radius: 10px; display: block; background: #EDEAE2; }
+.hair-ref figcaption { margin-top: 8px; text-align: center; }
+.hair-ref b { display: block; font-size: 13px; }
+.hair-ref span { display: block; font-size: 11px; color: var(--ink-3); margin-top: 2px; line-height: 1.45; }
 .ai-badge {
   display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px;
   background: #F1EFE8; color: var(--ink-2); margin-left: 6px;
