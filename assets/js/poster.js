@@ -176,11 +176,12 @@ export async function buildPoster({ report, photo, hairImages = [], brandName })
   const row3H = 210; // 外在印象
   const row4H = 560; // 发型推荐
   const row5H = 330; // 色彩推荐
+  const row55H = 330; // 皮相分析
   const row6H = 330; // 优化建议
   const footerH = 130;
 
   const H =
-    headerH + row1H + row2H + row3H + row4H + row5H + row6H + footerH + GAP * 6 + M;
+    headerH + row1H + row2H + row3H + row4H + row5H + row55H + row6H + footerH + GAP * 7 + M;
 
   canvas.width = W;
   canvas.height = H;
@@ -404,6 +405,77 @@ export async function buildPoster({ report, photo, hairImages = [], brandName })
     hx += ccW + 24;
   }
   y += row5H + GAP;
+
+  /* ---- ⑧ 皮相分析 ---- */
+  panel(ctx, M, y, innerW, row55H);
+  cy = y + 48;
+  sectionTitle(ctx, 8, '皮相分析', M + 18, cy);
+  const sk = report.skin_analysis;
+  // 左：七项指标紧凑网格（2列×4行）
+  const skinCells = [
+    ['肤质类型', sk.type],
+    ['肤色', sk.tone],
+    ['色调', sk.undertone],
+    ['质地', sk.texture],
+    ['毛孔', sk.pores],
+    ['弹性', sk.elasticity],
+    ['水分', sk.moisture],
+  ];
+  const cellW = 218;
+  const cellH = 52;
+  const cellGX = 14;
+  const cellGY = 12;
+  const gridX = M + 24;
+  const gridY = cy + 24;
+  skinCells.forEach(([k, v], i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const gx = gridX + col * (cellW + cellGX);
+    const gy = gridY + row * (cellH + cellGY);
+    const wCell = i === skinCells.length - 1 ? cellW * 2 + cellGX : cellW; // 最后一格跨两列
+    rr(ctx, gx, gy, wCell, cellH, 10);
+    ctx.fillStyle = '#FBF8F1';
+    ctx.fill();
+    ctx.strokeStyle = C.line;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = C.ink3;
+    ctx.font = `400 13px ${FONT}`;
+    ctx.fillText(k, gx + 14, gy + 21);
+    ctx.fillStyle = C.ink;
+    ctx.font = `600 17px ${FONT}`;
+    ctx.fillText(v, gx + 14, gy + 43);
+  });
+  // 右：优势 + 注意事项
+  const skRx = gridX + cellW * 2 + cellGX + 40;
+  let skY = gridY + 22;
+  ctx.fillStyle = C.brown;
+  ctx.font = `600 18px ${FONT}`;
+  ctx.fillText('皮肤优势', skRx, skY);
+  skY += 32;
+  ctx.fillStyle = C.ink2;
+  ctx.font = `400 17px ${FONT}`;
+  for (const t of sk.pros) {
+    ctx.fillStyle = '#6FA287';
+    ctx.fillText('✓', skRx, skY);
+    ctx.fillStyle = C.ink2;
+    ctx.fillText(t, skRx + 24, skY);
+    skY += 30;
+  }
+  skY += 12;
+  ctx.fillStyle = '#C06B8E';
+  ctx.font = `600 18px ${FONT}`;
+  ctx.fillText('注意事项', skRx, skY);
+  skY += 32;
+  ctx.font = `400 17px ${FONT}`;
+  for (const t of sk.cautions) {
+    ctx.fillStyle = '#C07A4A';
+    ctx.fillText('!', skRx + 4, skY);
+    ctx.fillStyle = C.ink2;
+    ctx.fillText(t, skRx + 24, skY);
+    skY += 30;
+  }
+  y += row55H + GAP;
 
   /* ---- ⑨ 优化建议 ---- */
   panel(ctx, M, y, innerW, row6H);
