@@ -253,6 +253,28 @@ export function transformCard(state, handlers) {
   return card('改造后的你', '', [compare, btn, note]);
 }
 
+export function posterCard(handlers) {
+  const holder = h('div');
+  const btn = h('button', { class: 'btn btn-primary btn-block', text: '生成我的颜值气质分析报告' });
+  const note = h('p', { class: 'micro', text: '含 3 款 AI 发型效果图，约需 1-3 分钟；若生成失败会显示原图参考' });
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = '生成中…';
+    try {
+      await handlers.onPoster(holder, (stage) => {
+        btn.textContent = stage;
+      });
+      note.textContent = '长按图片可保存，或直接分享给朋友';
+    } catch (err) {
+      note.textContent = err.message || '生成失败，请重试';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '重新生成报告海报';
+    }
+  });
+  return card('整体形象改造报告', '一页看完整个人', [holder, btn, note]);
+}
+
 export function shareCard(report, handlers) {
   const holder = h('div');
   const btn = h('button', { class: 'btn btn-primary btn-block', text: '生成我的评分卡片' });
@@ -336,6 +358,11 @@ export function renderReport(report, state, handlers) {
     ])
   );
 
+  root.appendChild(posterCard(handlers));
+  root.appendChild(celebCard(report));
+  root.appendChild(featureCard(report));
+  root.appendChild(skinCard(report));
+  root.appendChild(intlCard(report));
   root.appendChild(radarCard(report));
   root.appendChild(kvAsCard('面部诊断', [
     ['脸型', report.face.shape],
@@ -378,4 +405,82 @@ export function renderReport(report, state, handlers) {
 
 function kvAsCard(title, pairs) {
   return card(title, '', [kv(pairs)]);
+}
+
+/* ------------------------------------------------------------------ */
+/* 面部美学分析（文字报告）                                            */
+/* ------------------------------------------------------------------ */
+
+function tagPink(text) {
+  return h('span', { class: 'tag-pink', text });
+}
+
+function celebCard(report) {
+  const rows = report.celebrity.map((c) =>
+    h('div', { class: 'celeb-card' }, [
+      h('div', { class: 'celeb-icon', text: '✦' }),
+      h('div', { class: 'celeb-main' }, [
+        h('div', { class: 'celeb-head' }, [
+          h('b', { text: c.name }),
+          h('span', { class: 'celeb-sim' }, [document.createTextNode('相似度 '), h('em', { text: `${c.similarity}%` })]),
+        ]),
+        h('p', { class: 'celeb-vibe', text: c.vibe }),
+        h('p', { class: 'celeb-match', text: '匹配特征' }),
+        h('div', { class: 'tags' }, c.tags.map(tagPink)),
+      ]),
+    ])
+  );
+  return card('明星脸匹配', '面部特征层面的近似', rows);
+}
+
+function featureCard(report) {
+  const ICONS = { 眼睛: '👁', 鼻子: '👃', 嘴唇: '👄' };
+  const blocks = ['眼睛', '鼻子', '嘴唇'].map((part) => {
+    const f = report.features[part];
+    return h('div', { class: 'feat-block' }, [
+      h('p', { class: 'feat-title' }, [h('span', { class: 'feat-icon', text: ICONS[part] }), h('b', { text: part })]),
+      h('div', { class: 'tags' }, f.tags.map(tagPink)),
+      h('p', { class: 'feat-summary', text: f.summary }),
+      h('p', { class: 'feat-sub purple', text: '优势特点：' }),
+      h('ul', { class: 'feat-list' }, f.pros.map((t) => h('li', { text: t }))),
+      h('p', { class: 'feat-sub pink', text: '美化建议：' }),
+      h('ul', { class: 'feat-list' }, f.tips.map((t) => h('li', { text: t }))),
+    ]);
+  });
+  return card('五官分析', '基于照片可见证据', blocks);
+}
+
+function skinCard(report) {
+  const s = report.skin_analysis;
+  const cells = [
+    ['肤质类型', s.type],
+    ['肤色', s.tone],
+    ['色调', s.undertone],
+    ['质地', s.texture],
+    ['毛孔', s.pores],
+    ['弹性', s.elasticity],
+    ['水分', s.moisture],
+  ].map(([k, v]) => h('div', { class: 'skin-cell' }, [h('span', { text: k }), h('b', { text: v })]));
+
+  return card('皮相分析', '', [
+    h('div', { class: 'skin-grid' }, cells),
+    h('p', { class: 'feat-sub purple', text: '皮肤优势' }),
+    h('ul', { class: 'feat-list check' }, s.pros.map((t) => h('li', { text: t }))),
+    h('p', { class: 'feat-sub pink', text: '注意事项' }),
+    h('ul', { class: 'feat-list warn' }, s.cautions.map((t) => h('li', { text: t }))),
+    h('p', { class: 'feat-sub purple', text: '护肤建议' }),
+    h('ul', { class: 'feat-list dot' }, s.tips.map((t) => h('li', { text: t }))),
+  ]);
+}
+
+function intlCard(report) {
+  const rows = report.intl_standards.map((s) =>
+    h('div', { class: 'intl-row' }, [
+      h('b', { text: s.item }),
+      h('span', { class: 'intl-yours', text: s.yours }),
+      h('span', { class: 'intl-std', text: `标准 ${s.standard}` }),
+      h('p', { text: s.verdict }),
+    ])
+  );
+  return card('国际化审美标准对比', '', rows);
 }
