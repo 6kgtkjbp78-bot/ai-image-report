@@ -246,6 +246,11 @@ ul.advice li { padding: 10px 0; border-top: 1px solid var(--line); font-size: 14
 .lead-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .lead-grid input { height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 15px; background: var(--bg); }
 .lead-msg { font-size: 13px; margin-top: 8px; min-height: 20px; }
+.lead-qr { display: flex; align-items: center; gap: 14px; padding: 14px; background: #FAF7F2; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; }
+.lead-qr img { width: 108px; height: 108px; object-fit: contain; border-radius: 8px; background: #FFF; }
+.lead-qr span { font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+.lead-wx { font-size: 15px; padding: 12px 14px; background: #FAF7F2; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; }
+.lead-wx b { color: var(--navy); font-size: 17px; }
 
 /* 分享卡结果 */
 .share-preview { width: 100%; border-radius: 12px; display: block; }
