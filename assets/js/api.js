@@ -24,6 +24,7 @@ const ERR_TEXT = {
   daily_quota_exceeded: '今日额度已用完，明天再来',
   analyze_failed: '分析失败，请重试一次',
   transform_failed: '生成失败，请重试一次',
+  transform_throttled: '图片服务限流排队中，请稍候',
   origin_forbidden: '来源不允许',
 };
 
