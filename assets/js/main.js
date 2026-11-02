@@ -201,8 +201,8 @@ async function restore() {
   if (!cached) return;
   try {
     state.report = JSON.parse(cached);
-    if (!state.report || !state.report.celebrity) {
-      // 旧版本报告结构，直接作废重测
+    if (!state.report || !state.report.celebrity || !state.report.face_rule) {
+      // 旧版本报告（未套用脸型发型模板），直接作废重测
       localStorage.removeItem('report');
       return;
     }
