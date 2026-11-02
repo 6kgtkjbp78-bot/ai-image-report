@@ -206,8 +206,89 @@ export function buildUserPrompt(p) {
     {"day":7,"task":"..."}
   ],
   "transform_prompt": "给图像编辑模型的指令：在不改变人物身份特征的前提下，把发型换成 XX、服装换成 XX、光线干净、背景虚化，正面半身、真实质感、不要改变五官。控制在 80 字以内。",
-  "share_text": "第一人称的分享文案，像发给朋友的一句话，40字以内，不要营销腔"
-}`;
+  "share_text": "第一人称的分享文案，像发给朋友的一句话，40字以内，不要营销腔",
+  "stars": {
+    "first_look": "第一眼吸引力，1-5，0.5 步进",
+    "camera": "镜头表现力，1-5",
+    "affinity": "亲和感染力，1-5",
+    "identity": "个人识别度，1-5",
+    "potential": "潜力成长值，1-5，可略高，体现可塑性"
+  },
+  "conclusion": "测试结论，3句话：先肯定五官或气质底子，再点出一个最影响观感的短板，最后给一句改造预期。60字以内",
+  "feature_types": [
+    {"part":"额头","type":"类型命名，如：圆润饱满型","desc":"一句具体描述，20字以内"},
+    {"part":"眉毛","type":"如：自然弯月眉","desc":"20字以内"},
+    {"part":"眼睛","type":"如：杏仁灵动眼","desc":"20字以内"},
+    {"part":"鼻子","type":"如：直鼻（细挺型）","desc":"20字以内"},
+    {"part":"嘴巴","type":"如：M唇（微丰型）","desc":"20字以内"},
+    {"part":"下巴","type":"如：小巧圆润下巴","desc":"20字以内"},
+    {"part":"脸型","type":"如：鹅蛋（偏长）脸","desc":"20字以内"}
+  ],
+  "celebrity": [
+    {"name":"与用户同性的真实华人明星","similarity":"70-90 的整数，从高到低","vibe":"一句话气质概括，12字以内","tags":["最相似的面部特征1","特征2"]},
+    {"name":"...","similarity":"...","vibe":"...","tags":["...","..."]},
+    {"name":"...","similarity":"...","vibe":"...","tags":["...","..."]}
+  ],
+  "features": {
+    "眼睛": {"tags":["眼型标签1","标签2","标签3"],"summary":"一句话总评，25字以内","pros":["具体优势1","优势2","优势3"],"tips":["具体美化建议1","建议2"]},
+    "鼻子": {"tags":["鼻型标签1","标签2","标签3"],"summary":"25字以内","pros":["...","...","..."],"tips":["...","..."]},
+    "嘴唇": {"tags":["唇形标签1","标签2","标签3"],"summary":"25字以内","pros":["...","...","..."],"tips":["...","..."]}
+  },
+  "skin_analysis": {
+    "type":"肤质类型，如：混合性肌",
+    "tone":"肤色，如：自然肤色",
+    "undertone":"色调，如：暖色调",
+    "texture":"质地，如：毛孔可见",
+    "pores":"毛孔，如：略粗毛孔",
+    "elasticity":"弹性，如：弹性充足",
+    "moisture":"水分，如：水润充盈",
+    "pros":["皮肤优势1","优势2","优势3"],
+    "cautions":["注意事项1","注意事项2"],
+    "tips":["护肤建议1","护肤建议2"]
+  },
+  "intl_standards": [
+    {"item":"三庭比例","yours":"实际观察，如：上庭偏短","standard":"1:1:1","verdict":"一句话评价，15字以内"},
+    {"item":"五眼宽度","yours":"...","standard":"五等分","verdict":"..."},
+    {"item":"鼻唇角度","yours":"...","standard":"90-95度","verdict":"..."},
+    {"item":"下颌线条","yours":"...","standard":"120度左右","verdict":"..."}
+  ],
+  "energy_radar": [
+    {"label":"亲和力","score":"60-95 整数"},
+    {"label":"表达力","score":"..."},
+    {"label":"判断力","score":"..."},
+    {"label":"气场值","score":"..."},
+    {"label":"稳定感","score":"..."},
+    {"label":"镜头感","score":"..."}
+  ],
+  "aura_keywords": ["气质关键词1","关键词2","关键词3","关键词4"],
+  "impressions": [
+    "第一印象评价，像朋友口吻的一句话，20字以内",
+    "第二句，侧重气质氛围",
+    "第三句，侧重上镜或辨识度"
+  ],
+  "optimizations": {
+    "发型":"结合脸型的具体优化一句，25字以内",
+    "妆容":"具体建议一句，男性指底妆/修眉方向，25字以内",
+    "穿搭":"色系与剪裁建议一句，25字以内",
+    "配饰":"眼镜/配饰建议一句，25字以内"
+  },
+  "color_recs": [
+    {"name":"色系名，如：低饱和奶咖色系","desc":"效果描述，15字以内","colors":["3-4个具体hex色值"]},
+    {"name":"...","desc":"...","colors":["..."]},
+    {"name":"...","desc":"...","colors":["..."]}
+  ],
+  "hair_recs": [
+    {"name":"具体发型名，如：中长层次直发（男性则男士发型名）","desc":"效果描述，15字以内","prompt":"给图像编辑模型的指令：保持人物五官、表情、服装、背景完全不变，只把发型换成该款，发色自然黑，真实摄影质感。40字以内"},
+    {"name":"...","desc":"...","prompt":"..."},
+    {"name":"...","desc":"...","prompt":"..."}
+  ]
+}
+
+【补充规则】
+- celebrity 必须给同性别的真实华人明星；相似度是面部特征层面的近似，不要给完全不像的。
+- 所有标签、描述都要基于照片可见证据，禁止套话。
+- 男性用户的「妆容」指男士底妆、修眉、控油；「发型推荐」必须是男士发型。
+- color_recs 的色系要遵守肤色用色准则，hex 色值要真实可渲染。`;
 }
 
 async function handleAnalyze(body, env, corsHeaders) {
@@ -235,7 +316,7 @@ async function handleAnalyze(body, env, corsHeaders) {
         parameters: {
           enable_thinking: false,
           temperature: attempt === 0 ? 0.7 : 0.3,
-          max_tokens: 3000,
+          max_tokens: 8000,
         },
       };
       const res = await fetch(`${cfg.base}/api/v1/services/aigc/multimodal-generation/generation`, {
@@ -301,7 +382,14 @@ async function handleTransform(body, env, corsHeaders) {
     body: JSON.stringify(payload),
   });
   const raw = await res.text();
-  if (!res.ok) return json({ error: 'transform_failed', message: raw.slice(0, 400) }, 502, corsHeaders);
+  if (!res.ok) {
+    const throttled = /Throttling|RateQuota|rate limit/i.test(raw);
+    return json(
+      { error: throttled ? 'transform_throttled' : 'transform_failed', message: raw.slice(0, 400) },
+      throttled ? 429 : 502,
+      corsHeaders
+    );
+  }
 
   let data;
   try {
@@ -616,6 +704,160 @@ export function normalizeReport(d, profile) {
   const total = clamp(d.score_total, 60, 92, 74);
   const after = clamp(d.score_after, total + 4, Math.min(98, total + 16), Math.min(96, total + 10));
 
+  /* ---------------- 新报告字段兜底 ---------------- */
+
+  const isFemale = /女/.test(String(profile?.gender || ''));
+
+  const starRaw = d.stars && typeof d.stars === 'object' ? d.stars : {};
+  const star = (k, fb) => {
+    const v = Number(starRaw[k]);
+    if (!Number.isFinite(v)) return fb;
+    return Math.min(5, Math.max(2.5, Math.round(v * 2) / 2));
+  };
+  const stars = {
+    first_look: star('first_look', 4),
+    camera: star('camera', 3.5),
+    affinity: star('affinity', 4),
+    identity: star('identity', 3.5),
+    potential: star('potential', 4.5),
+  };
+
+  const ftRaw = Array.isArray(d.feature_types) ? d.feature_types : [];
+  const FT_PARTS = ['额头', '眉毛', '眼睛', '鼻子', '嘴巴', '下巴', '脸型'];
+  const feature_types = FT_PARTS.map((part, i) => {
+    const hit = ftRaw.find((f) => f && String(f.part || '').includes(part)) || ftRaw[i] || {};
+    return {
+      part,
+      type: typeof hit.type === 'string' && hit.type.trim() ? hit.type.slice(0, 12) : '标准型',
+      desc: typeof hit.desc === 'string' && hit.desc.trim() ? hit.desc.slice(0, 30) : '比例协调，无明显短板',
+    };
+  });
+
+  const celebRaw = Array.isArray(d.celebrity) ? d.celebrity : [];
+  const celebDefault = isFemale
+    ? [['周也', '清冷灵气的少女颜'], ['章若楠', '温柔干净的初恋脸'], ['倪妮', '高级耐看的氛围感']]
+    : [['吴磊', '干净清爽的少年感'], ['白敬亭', '清秀克制的盐系感'], ['李现', '硬朗耐看的都市感']];
+  const celebrity = [0, 1, 2].map((i) => {
+    const hit = celebRaw[i] || {};
+    const sim = clamp(hit.similarity, 60, 95, 82 - i * 3);
+    return {
+      name: typeof hit.name === 'string' && hit.name.trim() ? hit.name.slice(0, 6) : celebDefault[i][0],
+      similarity: sim,
+      vibe: typeof hit.vibe === 'string' && hit.vibe.trim() ? hit.vibe.slice(0, 16) : celebDefault[i][1],
+      tags: Array.isArray(hit.tags) && hit.tags.length
+        ? hit.tags.slice(0, 2).map((t) => String(t).slice(0, 8))
+        : ['面部轮廓', '五官量感'],
+    };
+  });
+
+  const featRaw = d.features && typeof d.features === 'object' ? d.features : {};
+  const normFeature = (key, defSummary) => {
+    const f = featRaw[key] && typeof featRaw[key] === 'object' ? featRaw[key] : {};
+    return {
+      tags: Array.isArray(f.tags) && f.tags.length ? f.tags.slice(0, 3).map((t) => String(t).slice(0, 8)) : ['形态标准', '比例协调', '量感适中'],
+      summary: typeof f.summary === 'string' && f.summary.trim() ? f.summary.slice(0, 40) : defSummary,
+      pros: Array.isArray(f.pros) && f.pros.length ? f.pros.slice(0, 3).map((t) => String(t).slice(0, 30)) : ['形态自然，比例协调'],
+      tips: Array.isArray(f.tips) && f.tips.length ? f.tips.slice(0, 2).map((t) => String(t).slice(0, 30)) : ['保持干净清爽即可'],
+    };
+  };
+  const features = {
+    眼睛: normFeature('眼睛', '眼部形态自然，神态放松'),
+    鼻子: normFeature('鼻子', '鼻部线条自然，与面部比例协调'),
+    嘴唇: normFeature('嘴唇', '唇形自然，上下唇比例协调'),
+  };
+
+  const sk = d.skin_analysis && typeof d.skin_analysis === 'object' ? d.skin_analysis : {};
+  const skin_analysis = {
+    type: typeof sk.type === 'string' && sk.type.trim() ? sk.type.slice(0, 10) : '混合性肌',
+    tone: typeof sk.tone === 'string' && sk.tone.trim() ? sk.tone.slice(0, 10) : '自然肤色',
+    undertone: typeof sk.undertone === 'string' && sk.undertone.trim() ? sk.undertone.slice(0, 10) : '暖色调',
+    texture: typeof sk.texture === 'string' && sk.texture.trim() ? sk.texture.slice(0, 10) : '纹理细腻',
+    pores: typeof sk.pores === 'string' && sk.pores.trim() ? sk.pores.slice(0, 10) : '毛孔正常',
+    elasticity: typeof sk.elasticity === 'string' && sk.elasticity.trim() ? sk.elasticity.slice(0, 10) : '弹性正常',
+    moisture: typeof sk.moisture === 'string' && sk.moisture.trim() ? sk.moisture.slice(0, 10) : '水分适中',
+    pros: Array.isArray(sk.pros) && sk.pros.length ? sk.pros.slice(0, 3).map((t) => String(t).slice(0, 24)) : ['肤质整体健康', '屏障状态稳定'],
+    cautions: Array.isArray(sk.cautions) && sk.cautions.length ? sk.cautions.slice(0, 2).map((t) => String(t).slice(0, 24)) : ['注意清洁，预防毛孔堵塞', '注意防晒，预防光老化'],
+    tips: Array.isArray(sk.tips) && sk.tips.length ? sk.tips.slice(0, 2).map((t) => String(t).slice(0, 30)) : ['保持充足水分摄入', '选择温和的洁面产品'],
+  };
+
+  const intlRaw = Array.isArray(d.intl_standards) ? d.intl_standards : [];
+  const INTL = [
+    ['三庭比例', '1:1:1'],
+    ['五眼宽度', '五等分'],
+    ['鼻唇角度', '90-95度'],
+    ['下颌线条', '120度左右'],
+  ];
+  const intl_standards = INTL.map(([item, standard], i) => {
+    const hit = intlRaw.find((s) => s && String(s.item || '').includes(item.slice(0, 2))) || intlRaw[i] || {};
+    return {
+      item,
+      standard,
+      yours: typeof hit.yours === 'string' && hit.yours.trim() ? hit.yours.slice(0, 16) : '接近标准',
+      verdict: typeof hit.verdict === 'string' && hit.verdict.trim() ? hit.verdict.slice(0, 24) : '比例协调，无明显偏离',
+    };
+  });
+
+  const ENERGY = ['亲和力', '表达力', '判断力', '气场值', '稳定感', '镜头感'];
+  const energyRaw = Array.isArray(d.energy_radar) ? d.energy_radar : [];
+  const energy_radar = ENERGY.map((label, i) => {
+    const hit = energyRaw.find((e) => e && e.label === label) || energyRaw[i] || {};
+    return { label, score: clamp(hit.score, 55, 96, 78 + ((i * 7) % 12)) };
+  });
+
+  const aura_keywords = Array.isArray(d.aura_keywords) && d.aura_keywords.length
+    ? d.aura_keywords.slice(0, 4).map((k) => String(k).slice(0, 6))
+    : ['干净清爽', '耐看', '上镜感', '可塑性强'];
+  while (aura_keywords.length < 4) aura_keywords.push(['干净清爽', '耐看', '上镜感', '可塑性强'][aura_keywords.length]);
+
+  const impressions = Array.isArray(d.impressions) && d.impressions.length
+    ? d.impressions.slice(0, 3).map((s) => String(s).slice(0, 30))
+    : ['第一眼干净舒服，越看越有味道。', '气质克制，有自己的节奏感。', '五官条件在线，上镜不吃亏。'];
+  while (impressions.length < 3) impressions.push('整体协调，风格可塑性强。');
+
+  const optRaw = d.optimizations && typeof d.optimizations === 'object' ? d.optimizations : {};
+  const optimizations = {
+    发型: typeof optRaw['发型'] === 'string' ? optRaw['发型'].slice(0, 40) : '保持头顶蓬松与层次，避免贴头皮。',
+    妆容: typeof optRaw['妆容'] === 'string' ? optRaw['妆容'].slice(0, 40) : isFemale ? '清透底妆，突出五官优势部位。' : '控油哑光底妆，修眉去杂毛。',
+    穿搭: typeof optRaw['穿搭'] === 'string' ? optRaw['穿搭'].slice(0, 40) : '以低饱和高级色系为主，剪裁合身。',
+    配饰: typeof optRaw['配饰'] === 'string' ? optRaw['配饰'].slice(0, 40) : '小巧精致为主，提升细节质感。',
+  };
+
+  const COLOR_DEFAULTS = [
+    { name: '藏青炭灰系', desc: '克制高级，通勤不出错', colors: ['#1B2C4A', '#3A4149', '#5B6470', '#8892A0'] },
+    { name: '米白燕麦系', desc: '柔和提亮，亲和力加分', colors: ['#EFE9DD', '#D9CFBC', '#C4B79F', '#A99B80'] },
+    { name: '灰蓝驼色系', desc: '冷暖平衡，显白提气', colors: ['#7C93A8', '#5F7A93', '#B08D5E', '#8C6B45'] },
+  ];
+  const colorRaw = Array.isArray(d.color_recs) ? d.color_recs : [];
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  const color_recs = [0, 1, 2].map((i) => {
+    const hit = colorRaw[i] || {};
+    const fb = COLOR_DEFAULTS[i];
+    const colors = Array.isArray(hit.colors) ? hit.colors.map((c) => String(c)).filter((c) => HEX.test(c)).slice(0, 4) : [];
+    return {
+      name: typeof hit.name === 'string' && hit.name.trim() ? hit.name.slice(0, 12) : fb.name,
+      desc: typeof hit.desc === 'string' && hit.desc.trim() ? hit.desc.slice(0, 24) : fb.desc,
+      colors: colors.length >= 3 ? colors : fb.colors,
+    };
+  });
+
+  const HAIR_DEFAULTS = isFemale
+    ? [['中长层次直发', '简约自然，修饰脸型'], ['轻法式八字刘海', '柔和减龄，提升氛围感'], ['自然微卷锁骨发', '温柔慵懒，增强灵动感']]
+    : [['微分碎盖', '蓬松纹理，修饰脸型'], ['美式前刺', '利落立体，增强轮廓'], ['侧分油头', '成熟克制，通勤质感']];
+  const hairRawRec = Array.isArray(d.hair_recs) ? d.hair_recs : [];
+  const hair_recs = [0, 1, 2].map((i) => {
+    const hit = hairRawRec[i] || {};
+    const fb = HAIR_DEFAULTS[i];
+    const name = typeof hit.name === 'string' && hit.name.trim() ? hit.name.slice(0, 14) : fb[0];
+    return {
+      name,
+      desc: typeof hit.desc === 'string' && hit.desc.trim() ? hit.desc.slice(0, 24) : fb[1],
+      prompt:
+        typeof hit.prompt === 'string' && hit.prompt.trim()
+          ? hit.prompt.slice(0, 120)
+          : `保持人物五官、表情、服装、背景完全不变，只把发型换成「${name}」，发色自然黑，真实摄影质感，不要改变五官`,
+    };
+  });
+
   return {
     score_total: total,
     score_after: after,
@@ -672,6 +914,22 @@ export function normalizeReport(d, profile) {
       typeof d.share_text === 'string' && d.share_text.trim()
         ? d.share_text.slice(0, 60)
         : `测出来 ${total} 分，说我改完能到 ${after} 分。有点想试试。`,
+    stars,
+    conclusion:
+      typeof d.conclusion === 'string' && d.conclusion.trim()
+        ? d.conclusion.slice(0, 80)
+        : '五官比例协调，底子在线；当前发型与穿搭拉低了整体完成度；按方案调整后，精致度和辨识度都会明显提升。',
+    feature_types,
+    celebrity,
+    features,
+    skin_analysis,
+    intl_standards,
+    energy_radar,
+    aura_keywords,
+    impressions,
+    optimizations,
+    color_recs,
+    hair_recs,
   };
 }
 
