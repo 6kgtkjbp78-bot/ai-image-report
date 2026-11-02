@@ -165,7 +165,8 @@ export function buildUserPrompt(p) {
     {"key":"aura","label":"气质记忆点","score":0-100,"comment":"最有辨识度的个人特质，30字以内"}
   ],
   "face": {
-    "shape": "脸型判断，如：方圆脸偏短",
+    "shape": "脸型判断，如：方圆脸偏短（在 face_type 基础上补一句具体描述）",
+    "face_type": "必须 5 选 1，严格使用原文：方圆脸/圆脸 | 长脸 | 菱形脸/高颧骨 | 鹅蛋脸/标准脸 | 心形脸/尖下巴",
     "proportion": "三庭五眼与五官量感，一句话",
     "brow_eye": "眉眼现状与问题，一句话",
     "skin_tone": "肤色冷暖与明度，如：暖调偏黄，中低明度",
@@ -278,7 +279,7 @@ export function buildUserPrompt(p) {
     {"name":"...","desc":"...","colors":["..."]}
   ],
   "hair_recs": [
-    {"name":"具体发型名，如：中长层次直发（男性则男士发型名）","desc":"效果描述，15字以内","prompt":"给图像编辑模型的指令：保持人物五官、表情、服装、背景完全不变，只把发型换成该款，发色自然黑，真实摄影质感。40字以内"},
+    {"name":"必须取自该 face_type 的「适配」清单，用清单里的原名，禁止臆造","desc":"为什么适配这个脸型：引用该脸型的重点或手法，20字以内","prompt":"给图像编辑模型的指令：保持人物五官、表情、服装、背景完全不变，只把发型换成该款，发色自然黑，真实摄影质感。40字以内"},
     {"name":"...","desc":"...","prompt":"..."},
     {"name":"...","desc":"...","prompt":"..."}
   ]
@@ -290,13 +291,47 @@ export function buildUserPrompt(p) {
 - 男性用户的「妆容」指男士底妆、修眉、控油；「发型推荐」必须是男士发型。
 - color_recs 的色系要遵守肤色用色准则，hex 色值要真实可渲染。
 
-【发型推荐铁律】
-- hair_recs 的 3 款必须是同一风格族内的变化（长度/纹理/刘海形态不同），主方向必须与 transform_prompt 一致，禁止三款风格互相打架。
-- 推荐前先判断脸型与发际线，严格规避放大短板的发型：
-  · 方圆脸偏短、发际线不整齐、额角后移 → 禁止全露额发型（前刺、背头、飞机头），优先带刘海的碎盖/逗号刘海/侧分纹理。
-  · 长脸 → 禁止继续拉高颅顶的蓬松款，优先两侧有量感、带刘海的横向平衡款。
-  · 圆脸 → 禁止齐刘海厚盖，优先露部分额头、顶部有高度的款。
-- 每款都要是理发店里能剪出来的真实发型，禁止臆造名称。`;
+【男生脸型—发型设计模板（硬约束，必须严格执行）】
+先依据照片判定 face_type，5 类只能选 1：
+
+A【方圆脸 / 圆脸】
+  重点：拉长脸型、弱化下颌棱角
+  避雷：齐刘海、厚重锅盖、贴头皮短发
+  适配：微分碎盖、侧分短发、锡纸烫、气垫烫
+  手法：颅顶垫高 + 两侧收紧，弱化圆脸肉感
+
+B【长脸】
+  重点：缩短脸型、增加横向蓬松
+  避雷：大背头、超高颅顶、无刘海
+  适配：韩式中分、法式刘海、纹理短发、摩根碎盖
+  手法：轻薄刘海中和脸长，避免脸又长又窄
+
+C【菱形脸 / 高颧骨】
+  重点：修饰颧骨、弱化太阳穴凹陷
+  避雷：露全脸寸头、两边铲光
+  适配：鲻鱼头、层次感碎发、微卷短发、胎毛刘海
+  手法：鬓角留一点长度遮挡颧骨，弱化脸部折叠感
+
+D【鹅蛋脸 / 标准脸】
+  天选万能脸型，随便造不踩雷
+  适配：寸头、美式前刺、中分、短发、长发
+  手法：随意换风格，清爽 / 痞帅 / 韩系都能驾驭
+
+E【心形脸 / 尖下巴】
+  重点：平衡上宽下窄、弱化尖下巴
+  避雷：头顶过蓬、太短短发
+  适配：微分碎盖、三七分、慵懒卷发
+  手法：增加下半张脸蓬松度，五官更协调
+
+【核心口诀】脸宽收两边 / 脸长留刘海 / 脸短增颅顶 / 骨相缺陷用碎发遮
+
+执行规则（违反即视为错误输出）：
+1. hair_recs 的 3 款必须全部取自该 face_type 的「适配」清单，使用清单里的原名，禁止臆造款式名，禁止出现「避雷」清单里的任何一款。
+2. 3 款同属该脸型的适配方向，彼此是长度/纹理/刘海形态的变化，不许风格互相打架。
+3. 每款 desc 必须写清「为什么适配这个脸型」，引用该脸型的重点或手法，禁止「时尚好看」这类空话。
+4. transform_prompt、advice.hair、optimizations.发型 必须与 hair_recs 的主方向一致，不许另起一套。
+5. 女性用户不受此表约束，按通用脸型适配原则推荐女款发型。
+6. 只描述款式与打理方式，禁止把发型描述成「让用户变成另一个人」。`;
 }
 
 async function handleAnalyze(body, env, corsHeaders) {
@@ -674,6 +709,51 @@ const RADAR_KEYS = [
   ['aura', '气质记忆点'],
 ];
 
+/* 门店「男生脸型—发型设计模板」：前端展示与兜底都以此为准，保证 100% 一致 */
+export const FACE_RULES = {
+  '方圆脸/圆脸': {
+    focus: '拉长脸型、弱化下颌棱角',
+    avoid: ['齐刘海', '厚重锅盖', '贴头皮短发'],
+    fits: ['微分碎盖', '侧分短发', '锡纸烫', '气垫烫'],
+    tip: '颅顶垫高 + 两侧收紧，弱化圆脸肉感',
+  },
+  '长脸': {
+    focus: '缩短脸型、增加横向蓬松',
+    avoid: ['大背头', '超高颅顶', '无刘海'],
+    fits: ['韩式中分', '法式刘海', '纹理短发', '摩根碎盖'],
+    tip: '轻薄刘海中和脸长，避免脸又长又窄',
+  },
+  '菱形脸/高颧骨': {
+    focus: '修饰颧骨、弱化太阳穴凹陷',
+    avoid: ['露全脸寸头', '两边铲光'],
+    fits: ['鲻鱼头', '层次感碎发', '微卷短发', '胎毛刘海'],
+    tip: '鬓角留一点长度遮挡颧骨，弱化脸部折叠感',
+  },
+  '鹅蛋脸/标准脸': {
+    focus: '天选万能脸型，不挑发型',
+    avoid: [],
+    fits: ['寸头', '美式前刺', '中分', '短发', '长发'],
+    tip: '随意换风格，清爽 / 痞帅 / 韩系都能驾驭',
+  },
+  '心形脸/尖下巴': {
+    focus: '平衡上宽下窄、弱化尖下巴',
+    avoid: ['头顶过蓬', '太短短发'],
+    fits: ['微分碎盖', '三七分', '慵懒卷发'],
+    tip: '增加下半张脸蓬松度，五官更协调',
+  },
+};
+export const HAIR_MANTRA = '脸宽收两边 / 脸长留刘海 / 脸短增颅顶 / 骨相缺陷用碎发遮';
+
+function normFaceType(v) {
+  const s = String(v || '');
+  if (/方圆|圆脸/.test(s)) return '方圆脸/圆脸';
+  if (/菱形|颧骨/.test(s)) return '菱形脸/高颧骨';
+  if (/心形|尖下巴/.test(s)) return '心形脸/尖下巴';
+  if (/鹅蛋|标准脸|标准/.test(s)) return '鹅蛋脸/标准脸';
+  if (/长脸/.test(s)) return '长脸';
+  return '方圆脸/圆脸';
+}
+
 /** 兜底：把模型输出的任意形态整理成前端可直接渲染的结构 */
 export function normalizeReport(d, profile) {
   const radarRaw = Array.isArray(d.radar) ? d.radar : [];
@@ -715,6 +795,8 @@ export function normalizeReport(d, profile) {
   /* ---------------- 新报告字段兜底 ---------------- */
 
   const isFemale = /女/.test(String(profile?.gender || ''));
+  const faceType = normFaceType(d.face?.face_type || d.face_type || d.face?.shape);
+  const faceRule = FACE_RULES[faceType];
 
   const starRaw = d.stars && typeof d.stars === 'object' ? d.stars : {};
   const star = (k, fb) => {
@@ -848,14 +930,33 @@ export function normalizeReport(d, profile) {
     };
   });
 
+  const HAIR_FEMALE = [
+    ['中长层次直发', '简约自然，修饰脸型'],
+    ['轻法式八字刘海', '柔和减龄，提升氛围感'],
+    ['自然微卷锁骨发', '温柔慵懒，增强灵动感'],
+  ];
+  // 男性兜底严格取自该脸型的「适配」清单
   const HAIR_DEFAULTS = isFemale
-    ? [['中长层次直发', '简约自然，修饰脸型'], ['轻法式八字刘海', '柔和减龄，提升氛围感'], ['自然微卷锁骨发', '温柔慵懒，增强灵动感']]
-    : [['微分碎盖', '蓬松纹理，修饰脸型'], ['美式前刺', '利落立体，增强轮廓'], ['侧分油头', '成熟克制，通勤质感']];
+    ? HAIR_FEMALE
+    : faceRule.fits.slice(0, 3).map((n) => [n, faceRule.focus]);
   const hairRawRec = Array.isArray(d.hair_recs) ? d.hair_recs : [];
+  const usedFit = new Set();
   const hair_recs = [0, 1, 2].map((i) => {
     const hit = hairRawRec[i] || {};
-    const fb = HAIR_DEFAULTS[i];
-    const name = typeof hit.name === 'string' && hit.name.trim() ? hit.name.slice(0, 14) : fb[0];
+    const fb = HAIR_DEFAULTS[i] || HAIR_DEFAULTS[0];
+    let name = typeof hit.name === 'string' && hit.name.trim() ? hit.name.slice(0, 14) : fb[0];
+    // 硬约束：男性推荐必须落在适配清单内、不得踩避雷款，且 3 款不重复
+    if (!isFemale) {
+      const matched = faceRule.fits.find((f) => name.includes(f));
+      const bannedHit = faceRule.avoid.some((a) => name.includes(a));
+      if (matched && !bannedHit && !usedFit.has(matched)) {
+        usedFit.add(matched);
+      } else {
+        const pick = faceRule.fits.find((f) => !usedFit.has(f)) || faceRule.fits[i % faceRule.fits.length];
+        name = pick;
+        usedFit.add(pick);
+      }
+    }
     return {
       name,
       desc: typeof hit.desc === 'string' && hit.desc.trim() ? hit.desc.slice(0, 24) : fb[1],
@@ -881,13 +982,24 @@ export function normalizeReport(d, profile) {
         : ['低饱和', '直线条', '哑光质感'],
     },
     radar,
-    face: pickStrings(d.face, ['shape', 'proportion', 'brow_eye', 'skin_tone', 'hair_now'], {
-      shape: '依据画面判断的脸型',
-      proportion: '五官量感适中',
-      brow_eye: '眉形可作精细修整',
-      skin_tone: '暖调偏黄，中低明度',
-      hair_now: '发型缺少纹理与蓬松度',
-    }),
+    face: {
+      ...pickStrings(d.face, ['shape', 'proportion', 'brow_eye', 'skin_tone', 'hair_now'], {
+        shape: '依据画面判断的脸型',
+        proportion: '五官量感适中',
+        brow_eye: '眉形可作精细修整',
+        skin_tone: '暖调偏黄，中低明度',
+        hair_now: '发型缺少纹理与蓬松度',
+      }),
+      face_type: faceType,
+    },
+    face_rule: {
+      type: faceType,
+      focus: faceRule.focus,
+      avoid: faceRule.avoid,
+      fits: faceRule.fits,
+      tip: faceRule.tip,
+      mantra: HAIR_MANTRA,
+    },
     body: {
       bmi: bmiOf(profile?.height, profile?.weight),
       build: String(d.body?.build || '依据身高体重的体型判断').slice(0, 40),
