@@ -340,7 +340,13 @@ export async function buildPoster({ report, photo, hairImages = [], brandName })
   sectionTitle(ctx, 6, '发型推荐', M + 18, cy);
   ctx.fillStyle = C.ink3;
   ctx.font = `400 16px ${FONT}`;
-  ctx.fillText('（根据脸型与气质推荐，图为款式参考）', M + 190, cy + 2);
+  ctx.fillText(
+    report.face_rule
+      ? `（【${report.face_rule.type}】适配 · ${report.face_rule.focus}）`
+      : '（根据脸型与气质推荐，图为款式参考）',
+    M + 190,
+    cy + 2
+  );
   const cardW = (innerW - 48 - 24 * 2) / 3;
   const imgH = cardW * 1.18;
   let hx = M + 24;
@@ -380,6 +386,13 @@ export async function buildPoster({ report, photo, hairImages = [], brandName })
     ctx.fillText(rec.desc, hx + cardW / 2, ty);
     ctx.textAlign = 'left';
     hx += cardW + 24;
+  }
+  if (report.face_rule) {
+    ctx.fillStyle = C.ink3;
+    ctx.font = `400 15px ${FONT}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`口诀 · ${report.face_rule.mantra}`, W / 2, y + row4H - 16);
+    ctx.textAlign = 'left';
   }
   y += row4H + GAP;
 
