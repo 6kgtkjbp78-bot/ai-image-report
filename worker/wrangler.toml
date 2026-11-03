@@ -22,6 +22,18 @@ MODEL_EDIT = "qwen-image-3.0"
 QUOTA_ANALYZE_PER_DAY = "300"
 QUOTA_TRANSFORM_PER_DAY = "150"
 
+# 邀请码：每码可生成的报告份数、激活令牌有效期（小时）
+# INVITE_SECRET 走 secret：npx wrangler secret put INVITE_SECRET
+INVITE_MAX_USES = "5"
+INVITE_TTL_HOURS = "24"
+# 演示码（可选）：npx wrangler secret put DEMO_CODE 设置后可公开演示，默认 30 次
+# DEMO_MAX_USES = "30"
+
+# 邀请码使用次数存储（防一码多人无限刷）
+[[kv_namespaces]]
+binding = "INVITE_KV"
+id = "1fd93a05918349988d8b323f7732eecf"
+
 # 绑定路由（自定义域，需先把域名接入 Cloudflare）
 # [[routes]]
 # pattern = "yourdomain.com/api/*"
