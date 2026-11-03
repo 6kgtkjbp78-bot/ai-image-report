@@ -165,6 +165,7 @@ analyzeBtn.addEventListener('click', async () => {
     api.track('analyze_ok', { score: report.score_total });
     showReport();
   } catch (err) {
+    stopProgress();
     api.track('analyze_fail', { message: String(err.message) });
     if (err.code && err.code.startsWith('invite_')) {
       // 令牌失效 / 次数用完：回到邀请码页重新激活
@@ -182,17 +183,21 @@ let progressTimer = null;
 
 function startProgress() {
   const stepText = $('#loader-step');
+  const timeText = $('#loader-time');
   const fill = $('#loader-fill');
-  let i = 0;
   const total = LOADING_STEPS.length;
+  const startedAt = Date.now();
   clearInterval(progressTimer);
   stepText.textContent = LOADING_STEPS[0];
+  timeText.textContent = '通常需要 1–2 分钟，请保持页面打开，不要锁屏或切后台';
   fill.style.width = '6%';
   progressTimer = setInterval(() => {
-    i = Math.min(total - 1, i + 1);
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const i = Math.min(total - 1, Math.floor(elapsed / 4.2));
     stepText.textContent = LOADING_STEPS[i];
+    timeText.textContent = `已等待 ${elapsed} 秒 · AI 正在生成报告，请勿关闭页面`;
     fill.style.width = `${Math.min(92, 12 + (i / total) * 72)}%`;
-  }, 4200);
+  }, 1000);
 }
 
 function stopProgress() {
