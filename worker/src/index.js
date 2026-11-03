@@ -9,13 +9,24 @@
  *
  * 接口：
  *   GET  /api/health
- *   POST /api/analyze           -> { report, usage }
+ *   POST /api/invite/verify     -> { token, expires_in, remaining }（邀请码激活）
+ *   POST /api/analyze           -> { report, usage }（需 body.invite_token）
  *   POST /api/transform         -> { task_id } | { url }
  *   GET  /api/transform/status?task_id=xxx
  *   GET  /api/asset?url=xxx     -> 图片流（跨域转发）
  *   POST /api/lead              -> 推送线索到企业微信群机器人
  *   POST /api/track             -> 202（埋点，忽略失败）
  */
+
+import { SYSTEM_PROMPT, FACE_RULES, HAIR_MANTRA } from './rules.js';
+import {
+  normalizeCode,
+  isValidInviteCode,
+  signInviteToken,
+  checkInviteToken,
+  inviteUsage,
+  inviteConsume,
+} from './invite.js';
 
 const MAX_BODY_BYTES = 3 * 1024 * 1024;
 
@@ -37,6 +48,11 @@ function readConfig(env) {
     strictOrigin: String(env.STRICT_ORIGIN ?? 'true') === 'true',
     quotaAnalyze: Number(env.QUOTA_ANALYZE_PER_DAY || 300),
     quotaTransform: Number(env.QUOTA_TRANSFORM_PER_DAY || 150),
+    inviteSecret: env.INVITE_SECRET || '',
+    inviteMaxUses: Number(env.INVITE_MAX_USES || 5),
+    inviteTtlHours: Number(env.INVITE_TTL_HOURS || 24),
+    demoCode: env.DEMO_CODE || '',
+    demoMaxUses: Number(env.DEMO_MAX_USES || 30),
   };
 }
 
@@ -71,12 +87,40 @@ export default {
 
       switch (routeKey) {
         case 'health':
-          return json({ ok: true, model: readConfig(env).modelVL }, 200, corsHeaders);
+          return json({
+            ok: true,
+            model: readConfig(env).modelVL,
+            invite: Boolean(readConfig(env).inviteSecret),
+            kv: Boolean(env.INVITE_KV),
+          }, 200, corsHeaders);
+
+        case 'invite':
+          if (url.pathname !== '/api/invite/verify') return json({ error: 'unknown_route' }, 404, corsHeaders);
+          return withGuard(ip, 'invite', env, corsHeaders, async () => {
+            const body = await readJson(request);
+            return handleInviteVerify(body, env, corsHeaders);
+          });
 
         case 'analyze':
           return withGuard(ip, 'analyze', env, corsHeaders, async () => {
             const body = await readJson(request);
-            return handleAnalyze(body, env, corsHeaders);
+            const cfg = readConfig(env);
+            if (!cfg.inviteSecret) return json({ error: 'invite_not_configured' }, 500, corsHeaders);
+            const auth = await checkInviteToken(body.invite_token, cfg.inviteSecret);
+            if (!auth.ok) return json({ error: auth.error }, 401, corsHeaders);
+            const maxUses = auth.code.startsWith('demo:') ? cfg.demoMaxUses : cfg.inviteMaxUses;
+            const usage = await inviteUsage(env, auth.code);
+            if (usage.tracked && usage.n >= maxUses) {
+              return json({ error: 'invite_exhausted', remaining: 0 }, 429, corsHeaders);
+            }
+            const res = await handleAnalyze(body, env, corsHeaders);
+            // 只有成功出报告才消耗次数，失败不计
+            if (res.status === 200) {
+              const consuming = inviteConsume(env, auth.code);
+              if (ctx && ctx.waitUntil) ctx.waitUntil(consuming);
+              else await consuming;
+            }
+            return res;
           });
 
         case 'transform':
@@ -113,31 +157,6 @@ export default {
 /* ------------------------------------------------------------------ */
 /* 报告生成                                                            */
 /* ------------------------------------------------------------------ */
-
-export const SYSTEM_PROMPT = `你是一位独立的资深形象顾问，有十余年男装版型、发型结构与脸型适配、色彩季型、场合着装的实战经验。
-
-你的审美主张：Minimal Chic / Smart Casual / Urban Quiet Luxury —— 克制、干净、有质感，不追求抢眼。
-
-评分准则：
-- 分数衡量的是「当前形象的完成度与可塑性」，不是天生颜值。严禁评价天生美丑，严禁比较他人。
-- 所有分数落在 62 至 92 之间，主体集中在 70 至 85，禁止出现满分或极低分。
-- score_after 必须高于 score_total，差值控制在 6 到 14 之间，代表按你的方案改造后的可达上限。
-
-内容准则：
-- 每条 comment 和每条建议都必须具体、可执行、可被造型师直接照做。禁止出现「注意保养」「提升气质」「增强自信」这类空话。
-- 必须给出数字：长度用厘米、角度或根数、宽度用指宽、发型用具体名称和长度。
-- 语言克制、专业、像一位收费不菲的顾问在说话，不要讨好，不要油腻，不要使用感叹号。
-- 本报告是一份独立的形象测评，不是任何机构的服务介绍。禁止出现「到店」「预约」「顾问」「门店」「机构」「联系我们」「加微信」等引导线下服务或商业转化的表述；只给方向和用户可以自己动手或拿着报告去执行的做法。
-
-肤色与用色准则（默认按中国用户暖调偏黄肤色判断）：
-- 推荐基础色：藏青、炭灰、米白、燕麦。
-- 提亮色：灰蓝、驼色、橄榄绿。
-- 点缀色：焦糖、酒红、黄铜。
-- 明确规避：荧光色、冷白与纯白、冰蓝、冷粉、任何高亮度冷色。
-
-禁止：任何疾病、医学、心理判断；任何涉种族、地域、身体特征的贬损或调侃；任何对体重的羞辱式表达。体脂相关只能描述为「观感」。
-
-输出要求：只输出一个 JSON 对象，不要输出 markdown 代码块，不要输出任何解释性文字，字段名严格使用下方模板。`;
 
 export function buildUserPrompt(p) {
   const bmi = bmiOf(p.height, p.weight);
@@ -519,6 +538,34 @@ async function handleLead(body, env, request, corsHeaders, ctx) {
 }
 
 /* ------------------------------------------------------------------ */
+/* 邀请码激活（自校验码算法与 KV 计次见 ./invite.js）                   */
+/* ------------------------------------------------------------------ */
+
+async function handleInviteVerify(body, env, corsHeaders) {
+  const cfg = readConfig(env);
+  if (!cfg.inviteSecret) return json({ error: 'invite_not_configured' }, 500, corsHeaders);
+  const code = normalizeCode(body.code);
+  if (!code) return json({ error: 'invite_invalid' }, 401, corsHeaders);
+  const isDemo = Boolean(cfg.demoCode) && code === normalizeCode(cfg.demoCode);
+  if (!isDemo && !(await isValidInviteCode(code, cfg.inviteSecret))) {
+    return json({ error: 'invite_invalid' }, 401, corsHeaders);
+  }
+  const key = (isDemo ? 'demo:' : '') + code;
+  const maxUses = isDemo ? cfg.demoMaxUses : cfg.inviteMaxUses;
+  const usage = await inviteUsage(env, key);
+  if (usage.tracked && usage.n >= maxUses) {
+    return json({ error: 'invite_exhausted', remaining: 0 }, 429, corsHeaders);
+  }
+  const token = await signInviteToken(key, cfg.inviteSecret, cfg.inviteTtlHours);
+  return json({
+    ok: true,
+    token,
+    expires_in: cfg.inviteTtlHours * 3600,
+    remaining: Math.max(0, maxUses - usage.n),
+  }, 200, corsHeaders);
+}
+
+/* ------------------------------------------------------------------ */
 /* 安全：来源校验 + 限流                                               */
 /* ------------------------------------------------------------------ */
 
@@ -534,8 +581,8 @@ async function withGuard(ip, kind, env, corsHeaders, next) {
   const cfg = readConfig(env);
   const now = Date.now();
 
-  // 单 IP 限流：analyze 10次/时、transform 5次/时、lead 10次/时
-  const hourly = { analyze: 10, transform: 5, lead: 10 }[kind] || 10;
+  // 单 IP 限流：analyze 10次/时、transform 5次/时、lead 10次/时、invite 30次/时（防爆破）
+  const hourly = { analyze: 10, transform: 5, lead: 10, invite: 30 }[kind] || 10;
   const key = `${ip}:${kind}`;
   const hits = (buckets.get(key) || []).filter((t) => now - t < 3600e3);
   if (hits.length >= hourly) {
@@ -546,11 +593,14 @@ async function withGuard(ip, kind, env, corsHeaders, next) {
   buckets.set(key, hits);
 
   // 每日总配额（按 isolate 计数，跨机房近似值，防止账单失控的兜底）
-  const dayKey = `${kind}:day:${new Date(now + 8 * 3600e3).toISOString().slice(0, 10)}`;
-  const quota = kind === 'transform' ? cfg.quotaTransform : cfg.quotaAnalyze;
-  const used = Number(buckets.get(dayKey) || 0);
-  if (used >= quota) return json({ error: 'daily_quota_exceeded' }, 429, corsHeaders);
-  buckets.set(dayKey, used + 1);
+  // 只有真正调用模型的接口计入每日配额，invite/lead 不占
+  if (kind === 'analyze' || kind === 'transform') {
+    const dayKey = `${kind}:day:${new Date(now + 8 * 3600e3).toISOString().slice(0, 10)}`;
+    const quota = kind === 'transform' ? cfg.quotaTransform : cfg.quotaAnalyze;
+    const used = Number(buckets.get(dayKey) || 0);
+    if (used >= quota) return json({ error: 'daily_quota_exceeded' }, 429, corsHeaders);
+    buckets.set(dayKey, used + 1);
+  }
 
   if (buckets.size > 20000) buckets.clear(); // 简易内存保护
 
@@ -708,41 +758,6 @@ const RADAR_KEYS = [
   ['outfit', '穿搭水准'],
   ['aura', '气质记忆点'],
 ];
-
-/* 门店「男生脸型—发型设计模板」：前端展示与兜底都以此为准，保证 100% 一致 */
-export const FACE_RULES = {
-  '方圆脸/圆脸': {
-    focus: '拉长脸型、弱化下颌棱角',
-    avoid: ['齐刘海', '厚重锅盖', '贴头皮短发'],
-    fits: ['微分碎盖', '侧分短发', '锡纸烫', '气垫烫'],
-    tip: '颅顶垫高 + 两侧收紧，弱化圆脸肉感',
-  },
-  '长脸': {
-    focus: '缩短脸型、增加横向蓬松',
-    avoid: ['大背头', '超高颅顶', '无刘海'],
-    fits: ['韩式中分', '法式刘海', '纹理短发', '摩根碎盖'],
-    tip: '轻薄刘海中和脸长，避免脸又长又窄',
-  },
-  '菱形脸/高颧骨': {
-    focus: '修饰颧骨、弱化太阳穴凹陷',
-    avoid: ['露全脸寸头', '两边铲光'],
-    fits: ['鲻鱼头', '层次感碎发', '微卷短发', '胎毛刘海'],
-    tip: '鬓角留一点长度遮挡颧骨，弱化脸部折叠感',
-  },
-  '鹅蛋脸/标准脸': {
-    focus: '天选万能脸型，不挑发型',
-    avoid: [],
-    fits: ['寸头', '美式前刺', '中分', '短发', '长发'],
-    tip: '随意换风格，清爽 / 痞帅 / 韩系都能驾驭',
-  },
-  '心形脸/尖下巴': {
-    focus: '平衡上宽下窄、弱化尖下巴',
-    avoid: ['头顶过蓬', '太短短发'],
-    fits: ['微分碎盖', '三七分', '慵懒卷发'],
-    tip: '增加下半张脸蓬松度，五官更协调',
-  },
-};
-export const HAIR_MANTRA = '脸宽收两边 / 脸长留刘海 / 脸短增颅顶 / 骨相缺陷用碎发遮';
 
 function normFaceType(v) {
   const s = String(v || '');
