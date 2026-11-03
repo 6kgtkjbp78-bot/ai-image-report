@@ -12,7 +12,11 @@ async function post(path, payload) {
   } catch {
     throw new Error('服务端返回异常');
   }
-  if (!res.ok) throw new Error(ERR_TEXT[data.error] || data.message || data.error || `请求失败 ${res.status}`);
+  if (!res.ok) {
+    const err = new Error(ERR_TEXT[data.error] || data.message || data.error || `请求失败 ${res.status}`);
+    err.code = data.error || `http_${res.status}`;
+    throw err;
+  }
   return data;
 }
 
@@ -26,10 +30,20 @@ const ERR_TEXT = {
   transform_failed: '生成失败，请重试一次',
   transform_throttled: '图片服务限流排队中，请稍候',
   origin_forbidden: '来源不允许',
+  invite_required: '请先输入邀请码',
+  invite_invalid: '邀请码不正确，请核对后再试',
+  invite_expired: '激活已过期，请重新输入邀请码',
+  invite_exhausted: '该邀请码的测评次数已用完，请联系客服补发',
+  invite_not_configured: '系统尚未配置邀请码，请联系客服',
 };
 
-export async function analyze(imageDataUrl, profile) {
-  const data = await post('/api/analyze', { image: imageDataUrl, profile });
+/** 邀请码激活：返回 { token, expires_in, remaining } */
+export async function verifyInvite(code) {
+  return post('/api/invite/verify', { code });
+}
+
+export async function analyze(imageDataUrl, profile, inviteToken) {
+  const data = await post('/api/analyze', { image: imageDataUrl, profile, invite_token: inviteToken || '' });
   if (!data.report) throw new Error('未返回报告内容');
   return { report: data.report, usage: data.usage };
 }
