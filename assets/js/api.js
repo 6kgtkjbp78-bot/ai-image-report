@@ -1,11 +1,28 @@
 import { API_BASE } from './config.js';
 
-async function post(path, payload) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+async function post(path, payload, timeoutMs = 20000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    // 网络层失败（含超时）：给可操作的提示，而不是无限转圈
+    const e = new Error(
+      err.name === 'AbortError'
+        ? '连接超时：当前网络访问较慢，请切换 Wi-Fi/流量，或改用电脑浏览器重试'
+        : '网络连接失败：请切换 Wi-Fi/流量后重试，或改用电脑浏览器打开'
+    );
+    e.code = err.name === 'AbortError' ? 'network_timeout' : 'network_error';
+    throw e;
+  }
+  clearTimeout(timer);
   let data = {};
   try {
     data = await res.json();
@@ -43,7 +60,8 @@ export async function verifyInvite(code) {
 }
 
 export async function analyze(imageDataUrl, profile, inviteToken) {
-  const data = await post('/api/analyze', { image: imageDataUrl, profile, invite_token: inviteToken || '' });
+  // 报告生成约 60-90s，单独放宽到 150s
+  const data = await post('/api/analyze', { image: imageDataUrl, profile, invite_token: inviteToken || '' }, 150000);
   if (!data.report) throw new Error('未返回报告内容');
   return { report: data.report, usage: data.usage };
 }
