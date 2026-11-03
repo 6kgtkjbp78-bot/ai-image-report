@@ -7,19 +7,81 @@ import { buildShareCard, publishCanvas } from './sharecard.js';
 import { buildPoster } from './poster.js';
 import { pickHairRefFiles } from './hair.js';
 
-const STEPS = ['step-hero', 'step-upload', 'step-loading', 'step-report'];
+const STEPS = ['step-invite', 'step-hero', 'step-upload', 'step-loading', 'step-report'];
 
 const state = {
   file: null,
   analyze: null, // { blob, dataUrl }
   photoUrl: '', // objectURL（用于预览与分享卡）
   report: null,
+  inviteToken: null,
 };
 
 function go(id) {
   STEPS.forEach((s) => $('#' + s).classList.toggle('is-active', s === id));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+/* ---------------- 邀请码门禁 ---------------- */
+
+const INVITE_KEY = 'field:invite';
+const inviteInput = $('#invite-code');
+const inviteMsg = $('#invite-msg');
+const inviteBtn = $('#btn-invite');
+
+function loadInvite() {
+  try {
+    const d = JSON.parse(localStorage.getItem(INVITE_KEY) || 'null');
+    if (d && d.token && Number(d.exp) > Date.now()) return d;
+  } catch {
+    /* 忽略损坏数据 */
+  }
+  return null;
+}
+
+function saveInvite(token, expiresIn) {
+  localStorage.setItem(INVITE_KEY, JSON.stringify({ token, exp: Date.now() + Number(expiresIn || 86400) * 1000 }));
+}
+
+function clearInvite() {
+  localStorage.removeItem(INVITE_KEY);
+  state.inviteToken = null;
+}
+
+inviteInput.addEventListener('input', () => {
+  // 只允许大写字母数字，自动去掉空格与横线，方便直接粘贴卡密
+  inviteInput.value = inviteInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  inviteMsg.textContent = '';
+});
+
+async function submitInvite() {
+  const code = inviteInput.value.trim();
+  if (!code) {
+    inviteMsg.textContent = '请输入邀请码';
+    return;
+  }
+  inviteBtn.disabled = true;
+  inviteBtn.textContent = '验证中…';
+  try {
+    const data = await api.verifyInvite(code);
+    state.inviteToken = data.token;
+    saveInvite(data.token, data.expires_in);
+    api.track('invite_ok');
+    inviteMsg.textContent = '';
+    go('step-upload');
+  } catch (err) {
+    api.track('invite_fail', { message: String(err.message) });
+    inviteMsg.textContent = err.message || '验证失败，请重试';
+  } finally {
+    inviteBtn.disabled = false;
+    inviteBtn.textContent = '验证邀请码';
+  }
+}
+
+inviteBtn.addEventListener('click', submitInvite);
+inviteInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitInvite();
+});
 
 /* ---------------- 上传步骤 ---------------- */
 
@@ -96,7 +158,7 @@ analyzeBtn.addEventListener('click', async () => {
   startProgress();
 
   try {
-    const { report } = await api.analyze(state.analyze.dataUrl, profile);
+    const { report } = await api.analyze(state.analyze.dataUrl, profile, state.inviteToken);
     state.report = report;
     await idbSet('photo', state.analyze.blob);
     localStorage.setItem('report', JSON.stringify(report));
@@ -104,6 +166,13 @@ analyzeBtn.addEventListener('click', async () => {
     showReport();
   } catch (err) {
     api.track('analyze_fail', { message: String(err.message) });
+    if (err.code && err.code.startsWith('invite_')) {
+      // 令牌失效 / 次数用完：回到邀请码页重新激活
+      clearInvite();
+      inviteMsg.textContent = err.message;
+      go('step-invite');
+      return;
+    }
     hint.textContent = err.message || '分析失败，请重试';
     go('step-upload');
   }
@@ -200,28 +269,43 @@ function showReport() {
 
 async function restore() {
   const cached = localStorage.getItem('report');
-  if (!cached) return;
+  if (!cached) return false;
   try {
     state.report = JSON.parse(cached);
     if (!state.report || !state.report.celebrity || !state.report.face_rule) {
       // 旧版本报告（未套用脸型发型模板），直接作废重测
       localStorage.removeItem('report');
-      return;
+      return false;
     }
     const photo = await idbGet('photo');
-    if (!photo) return;
+    if (!photo) return false;
     state.photoUrl = URL.createObjectURL(photo);
     showReport();
+    return true;
   } catch {
     localStorage.removeItem('report');
+    return false;
   }
 }
 
 $('#btn-clear').addEventListener('click', async () => {
   localStorage.removeItem('report');
   localStorage.removeItem('plan:progress');
+  clearInvite();
   await idbClear();
   location.reload();
 });
 
-restore();
+/* 启动：已激活（24h 内）直接进上传/恢复报告，否则先过邀请码门禁 */
+async function boot() {
+  const invite = loadInvite();
+  if (!invite) {
+    go('step-invite');
+    return;
+  }
+  state.inviteToken = invite.token;
+  const restored = await restore();
+  if (!restored) go('step-upload');
+}
+
+boot();
