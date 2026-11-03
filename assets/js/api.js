@@ -60,8 +60,8 @@ export async function verifyInvite(code) {
 }
 
 export async function analyze(imageDataUrl, profile, inviteToken) {
-  // 报告生成约 60-90s，单独放宽到 150s
-  const data = await post('/api/analyze', { image: imageDataUrl, profile, invite_token: inviteToken || '' }, 150000);
+  // 实测报告约 60-110s；移动网络、冷启动或模型重试时可能更久，上限需低于 FC 的 300s
+  const data = await post('/api/analyze', { image: imageDataUrl, profile, invite_token: inviteToken || '' }, 240000);
   if (!data.report) throw new Error('未返回报告内容');
   return { report: data.report, usage: data.usage };
 }
