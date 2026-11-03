@@ -11,8 +11,25 @@
 
 <main class="app">
 
+  <!-- 0. 邀请码门禁（小红书虚拟商品：买家凭卡密进入） -->
+  <section id="step-invite" class="step is-active">
+    <div class="invite-head">
+      <p class="invite-logo">形界 FIELD</p>
+      <h1 class="invite-title">AI 形象测评系统</h1>
+      <p class="invite-sub">面部 · 骨相 · 皮相 · 穿搭综合诊断<br>仅限受邀用户使用</p>
+    </div>
+    <div class="invite-card">
+      <h2>请输入您的邀请码</h2>
+      <input id="invite-code" class="invite-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16" placeholder="例如：XJ8K3MP2Q9">
+      <button class="btn btn-primary btn-block" id="btn-invite">验证邀请码</button>
+      <p class="invite-msg" id="invite-msg" role="alert"></p>
+      <p class="invite-help">没有邀请码？到小红书店铺下单，系统自动发货</p>
+    </div>
+    <p class="invite-note">注意：本工具仅供娱乐与形象参考，分析结果由 AI 生成，不代表真实评价。每个人的美都是独特的，报告建议仅供参考。</p>
+  </section>
+
   <!-- 1. 落地页 -->
-  <section id="step-hero" class="step is-active">
+  <section id="step-hero" class="step">
     <header class="hero">
       <p class="eyebrow">AI 形象诊断</p>
       <h1>别人看你的第一眼<br>到底输在哪一步</h1>
@@ -22,14 +39,14 @@
         <li><span>02</span> 身高体重推导的身材框架与比例</li>
         <li><span>03</span> 发型 / 穿搭 / 妆造的投入产出排序</li>
       </ul>
-      <button class="btn btn-primary" id="btn-start">免费测一测</button>
+      <button class="btn btn-primary" id="btn-start">开始测一测</button>
       <p class="micro">照片仅用于本次分析，服务端不留存，可随时清除</p>
     </header>
   </section>
 
   <!-- 2. 上传 -->
   <section id="step-upload" class="step">
-    <div class="step-bar"><button class="link-back" data-back="step-hero">← 返回</button><span>1 / 3 填写资料</span></div>
+    <div class="step-bar"><button class="link-back" data-back="step-invite">← 返回</button><span>1 / 3 填写资料</span></div>
     <h2 class="step-title">先给我一张真实的你</h2>
     <p class="step-sub">正面、光线均匀、不戴帽子墨镜的照片最准。半身或大头都可。</p>
 
@@ -107,7 +124,7 @@
 
 <footer class="site-foot">
   <p>形界 FIELD · AI 形象诊断</p>
-  <p class="micro">本报告由 AI 生成，仅代表形象风格建议，不构成医学诊断或任何自动化决策依据。发型参考图为款式示意，非本人合成效果。</p>
+  <p class="micro">本工具仅供娱乐与形象参考。报告由 AI 生成，不构成医学诊断或任何自动化决策依据；发型参考图为款式示意，非本人合成效果。</p>
   <p class="micro"><button class="link-danger" id="btn-clear">清除我在本机的全部数据</button></p>
 </footer>
 
