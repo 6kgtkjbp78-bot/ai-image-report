@@ -91,14 +91,18 @@ export async function inviteUsage(env, code) {
 /** 成功出报告后计一次；7 天自动过期清理 */
 export async function inviteConsume(env, code) {
   const kv = env.INVITE_KV;
-  if (!kv) return;
+  if (!kv) {
+    console.log('[invite] consume skipped: no kv binding', code);
+    return;
+  }
   try {
     const key = `c:${code}`;
     const raw = await kv.get(key);
     const data = raw ? JSON.parse(raw) : { n: 0, t: Date.now() };
     data.n = Number(data.n || 0) + 1;
     await kv.put(key, JSON.stringify(data), { expirationTtl: 7 * 86400 });
-  } catch {
-    /* 计数失败不影响已生成的报告 */
+    console.log('[invite] consumed', key, 'n=', data.n);
+  } catch (err) {
+    console.log('[invite] consume failed', code, String(err && err.message));
   }
 }
