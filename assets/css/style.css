@@ -313,6 +313,32 @@ ul.advice li { padding: 10px 0; border-top: 1px solid var(--line); font-size: 14
 footer.site-foot { text-align: center; padding: 20px 20px 40px; color: var(--ink-3); font-size: 12px; }
 footer.site-foot p { margin: 6px 0; }
 
+/* ---------- 邀请码门禁 ---------- */
+.invite-head {
+  background: linear-gradient(160deg, #2E4A75 0%, var(--navy) 70%);
+  color: #F5F1E8; text-align: center;
+  border-radius: 18px; padding: 34px 22px 30px; margin-bottom: 18px;
+}
+.invite-logo { font-size: 12px; letter-spacing: .38em; opacity: .72; margin: 0 0 12px; }
+.invite-title { font-size: 26px; margin: 0 0 12px; color: #F5F1E8; }
+.invite-sub { font-size: 13px; line-height: 1.8; opacity: .82; margin: 0; }
+.invite-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow); padding: 26px 22px 20px; text-align: center;
+}
+.invite-card h2 { font-size: 19px; margin: 0 0 18px; }
+.invite-input {
+  width: 100%; text-align: center; font-size: 20px; letter-spacing: .16em;
+  padding: 13px 12px 13px 20px; border: 1.5px solid var(--line); border-radius: 12px;
+  background: #FAF8F4; color: var(--ink); margin-bottom: 14px;
+  font-family: inherit; text-transform: uppercase;
+}
+.invite-input:focus { outline: none; border-color: var(--navy-2); background: #FFF; }
+.invite-input::placeholder { color: var(--ink-3); font-size: 15px; letter-spacing: .08em; }
+.invite-msg { min-height: 20px; margin: 10px 0 0; font-size: 13px; color: #B4432F; }
+.invite-help { margin: 10px 0 0; font-size: 13px; color: var(--ink-3); }
+.invite-note { margin: 18px 4px 0; font-size: 12px; line-height: 1.9; color: var(--ink-3); text-align: center; }
+
 @media (max-width: 360px) {
   h1 { font-size: 26px; }
   .score-now { font-size: 52px; }
